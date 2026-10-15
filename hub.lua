@@ -1,0 +1,1224 @@
+--[[
+    ╔══════════════════════════════════════════════════════════════╗
+    ║         SYNOX HUB - Integrated Launcher v4.0.0              ║
+    ║    Auto-Detect PlaceId | Key System | Multi-Game Hub        ║
+    ║         Gakuran + MM2 + Universal Scripts                   ║
+    ║   © IEM7R | dc:siberguvenlik | All rights reserved          ║
+    ╚══════════════════════════════════════════════════════════════╝
+]]
+
+-- ══════════════════════════════════════════════════════════════
+-- CONFIGURATION
+-- ══════════════════════════════════════════════════════════════
+local CONFIG = {
+    KeySystemEnabled = true,
+    KeyCheckURL = "https://raw.githubusercontent.com/emrself/mining/main/keys.txt",
+    DiscordLink = "https://discord.gg/hHQ97ATpR9",
+    KeyGetURL = "https://discord.gg/hHQ97ATpR9",
+    DefaultHotkey = Enum.KeyCode.RightControl,
+    AutoDetectEnabled = true,
+    Version = "4.0.0",
+}
+
+-- ══════════════════════════════════════════════════════════════
+-- GAME REGISTRY (PlaceId → Script mapping)
+-- ══════════════════════════════════════════════════════════════
+local GAME_REGISTRY = {
+    -- Gakuran (Rhythm Game) — multiple PlaceIds possible
+    {
+        PlaceIds = {128736949265057},
+        Name = "Gakuran Auto-Player",
+        Description = "Rhythm oyunu tam otomasyon scripti.\n\nÖzellikler:\n• Auto-Play (Guitar 2 Lane)\n• Auto-Play (Drums 4 Lane)\n• Accuracy Kontrol (Perfect/Good/Okay/Bad)\n• Mobile Uyumluluk\n• Keybind Ayarlama\n• Lane State Machine\n• Hit Zone Ayarlama",
+        ShortDesc = "Auto-Play, Accuracy Control, Mobile",
+        Tag = "Updated",
+        Icon = "🎸",
+        ImageId = "rbxthumb://type=GameIcon&id=128736949265057&w=150&h=150",
+        URL = "https://raw.githubusercontent.com/emrself/mining/main/gakuran.lua",
+    },
+    -- Murder Mystery 2
+    {
+        PlaceIds = {142823291},
+        Name = "Synox MM2",
+        Description = "Murder Mystery 2 full edition script.\n\nÖzellikler:\n• ESP (Rol Tespiti + Oyuncu)\n• Gun Aimbot (Sheriff)\n• Coin Farm (Otomatik)\n• Murderer/Sheriff/Hero Tespiti\n• Teleport (Gun/Coin/Player)\n• Auto Fling\n• Anti-Trap / Anti-Fling\n• Speed / Fly / Noclip\n• Fullbright\n• Anti-AFK\n• Murderer Alert",
+        ShortDesc = "ESP, Aimbot, Coin Farm, Role Detect",
+        Tag = "Full Edition",
+        Icon = "🔪",
+        ImageId = "rbxthumb://type=GameIcon&id=142823291&w=150&h=150",
+        URL = "https://raw.githubusercontent.com/emrself/mining/main/mm2.lua",
+        -- Callback ile de çalıştırılabilir (inline script varsa)
+    },
+}
+
+-- ══════════════════════════════════════════════════════════════
+-- SERVICES
+-- ══════════════════════════════════════════════════════════════
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
+local TeleportService = game:GetService("TeleportService")
+
+local LocalPlayer = Players.LocalPlayer
+if not LocalPlayer then
+    pcall(function() Players:GetPropertyChangedSignal("LocalPlayer"):Wait() end)
+    LocalPlayer = Players.LocalPlayer
+end
+
+local CURRENT_PLACE_ID = game.PlaceId
+
+-- ══════════════════════════════════════════════════════════════
+-- DESTROY PREVIOUS INSTANCES
+-- ══════════════════════════════════════════════════════════════
+for _, gui in ipairs(CoreGui:GetChildren()) do
+    if gui:IsA("ScreenGui") and string.find(gui.Name, "SynoxHub_") then
+        gui:Destroy()
+    end
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- KEY PERSISTENCE
+-- ══════════════════════════════════════════════════════════════
+local KEY_FOLDER = "Synox"
+local KEY_FILE = KEY_FOLDER .. "/key.dat"
+
+local function ensureFolder()
+    pcall(function()
+        if typeof(isfolder) == "function" and not isfolder(KEY_FOLDER) and typeof(makefolder) == "function" then
+            makefolder(KEY_FOLDER)
+        end
+    end)
+end
+
+local function saveKey(k)
+    pcall(function()
+        if typeof(writefile) == "function" then
+            local ok = pcall(function() ensureFolder(); writefile(KEY_FILE, k) end)
+            if not ok then pcall(function() writefile("synox_key.dat", k) end) end
+        end
+    end)
+end
+
+local function loadSavedKey()
+    local s, r = pcall(function()
+        if typeof(isfile) == "function" and typeof(readfile) == "function" then
+            if isfile(KEY_FILE) then return readfile(KEY_FILE):match("^%s*(.-)%s*$") end
+            if isfile("synox_key.dat") then return readfile("synox_key.dat"):match("^%s*(.-)%s*$") end
+        end
+        return nil
+    end)
+    return s and r or nil
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- HTTP FETCH (Universal)
+-- ══════════════════════════════════════════════════════════════
+local function fetchText(url)
+    if typeof(game.HttpGet) == "function" then
+        local s, r = pcall(function() return game:HttpGet(url) end)
+        if s and type(r) == "string" and #r > 0 then return r end
+    end
+    if typeof(httpget) == "function" then
+        local s, r = pcall(function() return httpget(url) end)
+        if s and type(r) == "string" and #r > 0 then return r end
+    end
+    local req = (syn and syn.request) or (http and http.request) or http_request or request
+    if typeof(req) == "function" then
+        local s, r = pcall(function() return req({Url = url, Method = "GET"}) end)
+        if s and r and r.Body and type(r.Body) == "string" and #r.Body > 0 then return r.Body end
+    end
+    return nil
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- KEY VALIDATION
+-- ══════════════════════════════════════════════════════════════
+local function validateKey(inputKey)
+    if not inputKey or inputKey == "" then return false end
+    local resp = fetchText(CONFIG.KeyCheckURL)
+    if not resp then return false end
+    local LF = string.char(10)
+    local CR = string.char(13)
+    local pos = 1
+    while pos <= #resp do
+        local nl = string.find(resp, LF, pos, true)
+        local seg
+        if nl then seg = string.sub(resp, pos, nl - 1); pos = nl + 1
+        else seg = string.sub(resp, pos); pos = #resp + 1 end
+        local clean = string.gsub(seg, CR, "")
+        local trimmed = string.match(clean, "^%s*(.-)%s*$")
+        if trimmed and trimmed == inputKey then return true end
+    end
+    return false
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- NOTIFICATION SYSTEM
+-- ══════════════════════════════════════════════════════════════
+local MessageBox
+pcall(function()
+    MessageBox = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/NotificationGUI/main/source.lua"))()
+end)
+
+local function NInfo(t, m)
+    if MessageBox then
+        MessageBox.Show({Position = UDim2.new(0.5, 0, 0.5, 0), Text = t or "SYNOX HUB", Description = m or "", MessageBoxIcon = "Question", MessageBoxButtons = "OK"})
+    end
+end
+local function NError(t, m)
+    if MessageBox then
+        MessageBox.Show({Position = UDim2.new(0.5, 0, 0.5, 0), Text = t or "Error", Description = m or "", MessageBoxIcon = "Error", MessageBoxButtons = "OK"})
+    end
+end
+local function NConfirm(t, m, cb)
+    if MessageBox then
+        MessageBox.Show({Position = UDim2.new(0.5, 0, 0.5, 0), Text = t or "Confirm", Description = m or "", MessageBoxIcon = "Question", MessageBoxButtons = "YesNo", Result = function(r) if cb then cb(r == "Yes") end end})
+    end
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- THEME (Synox Glassmorphism)
+-- ══════════════════════════════════════════════════════════════
+local T = {
+    Bg = Color3.fromRGB(25, 25, 30), BgT = 0.15,
+    Outer = Color3.fromRGB(35, 35, 42), OuterT = 0.45,
+    OuterStroke = Color3.fromRGB(80, 80, 95), OuterStrokeT = 0.3,
+    Panel = Color3.fromRGB(30, 30, 38), PanelT = 0.25,
+    PanelStroke = Color3.fromRGB(60, 60, 75),
+    TitleBg = Color3.fromRGB(20, 20, 26), TitleBgT = 0.1,
+    Accent = Color3.fromRGB(0, 180, 216),
+    AccentGlow = Color3.fromRGB(0, 200, 240),
+    TextPri = Color3.fromRGB(220, 220, 230),
+    TextSec = Color3.fromRGB(150, 150, 165),
+    TextMut = Color3.fromRGB(100, 100, 115),
+    TextAcc = Color3.fromRGB(0, 200, 230),
+    TabAct = Color3.fromRGB(40, 40, 50), TabActT = 0.2,
+    TabIn = Color3.fromRGB(30, 30, 38), TabInT = 0.5,
+    TabStroke = Color3.fromRGB(55, 55, 68),
+    Card = Color3.fromRGB(32, 32, 40), CardT = 0.3,
+    CardHov = Color3.fromRGB(38, 38, 48),
+    CardStroke = Color3.fromRGB(55, 55, 68),
+    BtnExec = Color3.fromRGB(45, 180, 50),
+    BtnExecH = Color3.fromRGB(55, 210, 60),
+    BtnPri = Color3.fromRGB(0, 160, 195),
+    BtnPriH = Color3.fromRGB(0, 185, 220),
+    BtnDng = Color3.fromRGB(200, 50, 50),
+    Green = Color3.fromRGB(50, 205, 50),
+    Yellow = Color3.fromRGB(255, 200, 50),
+    Red = Color3.fromRGB(200, 50, 50),
+    Scroll = Color3.fromRGB(60, 60, 75),
+    ThumbBg = Color3.fromRGB(230, 230, 235),
+    InputBg = Color3.fromRGB(22, 22, 28),
+    CR = UDim.new(0, 8), CRS = UDim.new(0, 5), CRL = UDim.new(0, 12),
+    FT = Enum.Font.GothamBold, FH = Enum.Font.GothamSemibold, FB = Enum.Font.Gotham,
+    TBH = 36, TABH = 38, WW = 550, WH = 460,
+}
+
+-- ══════════════════════════════════════════════════════════════
+-- UTILITY
+-- ══════════════════════════════════════════════════════════════
+local function C(cls, props)
+    local inst = Instance.new(cls)
+    for k, v in pairs(props) do
+        if k ~= "Parent" then inst[k] = v end
+    end
+    if props.Parent then inst.Parent = props.Parent end
+    return inst
+end
+
+local function Tw(inst, dur, props, es, ed)
+    local t = TweenService:Create(inst, TweenInfo.new(dur or 0.25, es or Enum.EasingStyle.Quint, ed or Enum.EasingDirection.Out), props)
+    t:Play()
+    return t
+end
+
+local function Corner(p, r) return C("UICorner", {CornerRadius = r or T.CR, Parent = p}) end
+local function Stroke(p, c, th, tr) return C("UIStroke", {Color = c or T.OuterStroke, Thickness = th or 1, Transparency = tr or 0.3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = p}) end
+local function Pad(p, t, r, b, l) return C("UIPadding", {PaddingTop = UDim.new(0, t or 8), PaddingRight = UDim.new(0, r or 8), PaddingBottom = UDim.new(0, b or 8), PaddingLeft = UDim.new(0, l or 8), Parent = p}) end
+local function Grad(p, c1, c2, rot) return C("UIGradient", {Color = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2)}), Rotation = rot or 90, Parent = p}) end
+
+local function Ripple(btn, pos)
+    local r = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0, pos.X - btn.AbsolutePosition.X, 0, pos.Y - btn.AbsolutePosition.Y), Size = UDim2.new(0, 0, 0, 0), BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.85, BorderSizePixel = 0, ZIndex = btn.ZIndex + 1, Parent = btn})
+    Corner(r, UDim.new(1, 0))
+    local ms = math.max(btn.AbsoluteSize.X, btn.AbsoluteSize.Y) * 2.5
+    Tw(r, 0.5, {Size = UDim2.new(0, ms, 0, ms), BackgroundTransparency = 1})
+    task.delay(0.5, function() r:Destroy() end)
+end
+
+local function GetPing()
+    local s, p = pcall(function() return math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
+    return s and p or 0
+end
+
+local KeyNames = {}
+for _, v in ipairs(Enum.KeyCode:GetEnumItems()) do
+    KeyNames[v] = v.Name
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- PLACE ID AUTO-DETECTION ENGINE
+-- ══════════════════════════════════════════════════════════════
+local function findMatchingGames(placeId)
+    local matches = {}
+    for _, entry in ipairs(GAME_REGISTRY) do
+        for _, pid in ipairs(entry.PlaceIds) do
+            if pid == placeId then
+                table.insert(matches, entry)
+                break
+            end
+        end
+    end
+    return matches
+end
+
+local function executeGameScript(gameData)
+    local success, err = pcall(function()
+        if gameData.Callback then
+            gameData.Callback()
+        elseif gameData.URL then
+            loadstring(game:HttpGet(gameData.URL))()
+        end
+    end)
+    if success then
+        NInfo("SYNOX HUB", gameData.Name .. " başarıyla yüklendi!")
+    else
+        NError("Hata", gameData.Name .. " yüklenemedi:\n" .. tostring(err))
+    end
+    return success
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- HUB STATE
+-- ══════════════════════════════════════════════════════════════
+local gamesList = {}
+local connections = {}
+local minimized = false
+local destroyed = false
+local tabs = {}
+local activeTab = "Home"
+local pages = {}
+local currentHotkey = CONFIG.DefaultHotkey
+local hubVisible = true
+local autoDetectedGames = findMatchingGames(CURRENT_PLACE_ID)
+
+-- ══════════════════════════════════════════════════════════════
+-- SCREENGUI
+-- ══════════════════════════════════════════════════════════════
+local SG = C("ScreenGui", {Name = "SynoxHub_" .. HttpService:GenerateGUID(false), ZIndexBehavior = Enum.ZIndexBehavior.Sibling, ResetOnSpawn = false, IgnoreGuiInset = true})
+pcall(function() SG.Parent = CoreGui end)
+if not SG.Parent then SG.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+-- ══════════════════════════════════════════════════════════════
+-- ████████████████████████████████████████████████████████████
+-- █              AUTO-DETECT SELECTION DIALOG                █
+-- ████████████████████████████████████████████████████████████
+-- ══════════════════════════════════════════════════════════════
+local function showSelectionDialog(matchedGames, onSelect, onSkip)
+    local Overlay = C("Frame", {Name = "SelectOverlay", Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(5, 5, 8), BackgroundTransparency = 0.15, BorderSizePixel = 0, ZIndex = 200, Parent = SG})
+
+    local dialogH = 180 + (#matchedGames * 60)
+    if dialogH > 500 then dialogH = 500 end
+
+    local DOuter = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 420, 0, dialogH), BackgroundColor3 = T.Outer, BackgroundTransparency = T.OuterT, BorderSizePixel = 0, ZIndex = 201, ClipsDescendants = true, Parent = Overlay})
+    Corner(DOuter, T.CRL)
+    Stroke(DOuter, T.OuterStroke, 1.5, T.OuterStrokeT)
+
+    local DPanel = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(1, -12, 1, -12), BackgroundColor3 = T.Bg, BackgroundTransparency = T.BgT, BorderSizePixel = 0, ZIndex = 202, ClipsDescendants = true, Parent = DOuter})
+    Corner(DPanel, T.CR)
+    Stroke(DPanel, T.PanelStroke, 1, 0.5)
+
+    -- Title bar
+    local DTB = C("Frame", {Size = UDim2.new(1, 0, 0, T.TBH), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 210, Parent = DPanel})
+    Corner(DTB, T.CR)
+    C("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 210, Parent = DTB})
+    C("TextLabel", {Size = UDim2.new(0.8, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB — Oyun Tespit Edildi!", TextColor3 = T.TextPri, TextSize = 15, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 211, Parent = DTB})
+    C("Frame", {Size = UDim2.new(0, 80, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 212, Parent = DTB})
+
+    -- Glow line
+    local DGlow = C("Frame", {Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 0, T.TBH), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.6, BorderSizePixel = 0, ZIndex = 205, Parent = DPanel})
+    Grad(DGlow, T.AccentGlow, Color3.new(0, 0, 0), 0)
+
+    -- Content
+    local DContent = C("Frame", {Size = UDim2.new(1, -30, 1, -(T.TBH + 20)), Position = UDim2.new(0, 15, 0, T.TBH + 10), BackgroundTransparency = 1, ZIndex = 203, Parent = DPanel})
+
+    -- Icon
+    local DetectIcon = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0, 50, 0, 50), Position = UDim2.new(0.5, 0, 0, 0), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, ZIndex = 204, Parent = DContent})
+    Corner(DetectIcon, UDim.new(1, 0))
+    Stroke(DetectIcon, T.Accent, 2, 0.3)
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = "🎮", TextSize = 26, ZIndex = 205, Parent = DetectIcon})
+
+    -- Title
+    local countText = #matchedGames == 1 and "Bu oyun için 1 script bulundu:" or ("Bu oyun için " .. tostring(#matchedGames) .. " script bulundu:")
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0.5, 0, 0, 56), BackgroundTransparency = 1, Text = countText, TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, ZIndex = 204, Parent = DContent})
+
+    -- Script selection buttons
+    local btnY = 82
+    for i, gameData in ipairs(matchedGames) do
+        local scriptBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0.5, 0, 0, btnY), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, Text = "", BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 205, Parent = DContent})
+        Corner(scriptBtn, T.CRS)
+        Stroke(scriptBtn, T.CardStroke, 1, 0.5)
+
+        -- Icon
+        C("TextLabel", {Size = UDim2.new(0, 35, 0, 35), Position = UDim2.new(0, 8, 0.5, -17), BackgroundTransparency = 1, Text = gameData.Icon or "📜", TextSize = 20, ZIndex = 206, Parent = scriptBtn})
+
+        -- Name
+        C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 18), Position = UDim2.new(0, 48, 0, 6), BackgroundTransparency = 1, Text = gameData.Name, TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 206, Parent = scriptBtn})
+
+        -- Short desc
+        C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 14), Position = UDim2.new(0, 48, 0, 26), BackgroundTransparency = 1, Text = gameData.ShortDesc or "", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 206, Parent = scriptBtn})
+
+        -- Execute indicator
+        local execInd = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 70, 0, 26), Position = UDim2.new(1, -8, 0.5, 0), BackgroundColor3 = T.BtnExec, BackgroundTransparency = 0.15, Text = "Çalıştır", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, ZIndex = 206, Parent = scriptBtn})
+        Corner(execInd, T.CRS)
+
+        -- Hover
+        scriptBtn.MouseEnter:Connect(function()
+            Tw(scriptBtn, 0.2, {BackgroundColor3 = T.CardHov, BackgroundTransparency = 0.15})
+            local s = scriptBtn:FindFirstChildOfClass("UIStroke")
+            if s then Tw(s, 0.2, {Color = T.Accent, Transparency = 0.3}) end
+        end)
+        scriptBtn.MouseLeave:Connect(function()
+            Tw(scriptBtn, 0.2, {BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT})
+            local s = scriptBtn:FindFirstChildOfClass("UIStroke")
+            if s then Tw(s, 0.2, {Color = T.CardStroke, Transparency = 0.5}) end
+        end)
+
+        scriptBtn.MouseButton1Click:Connect(function()
+            Ripple(scriptBtn, Vector2.new(scriptBtn.AbsolutePosition.X + scriptBtn.AbsoluteSize.X / 2, scriptBtn.AbsolutePosition.Y + scriptBtn.AbsoluteSize.Y / 2))
+            -- Close dialog
+            Tw(DOuter, 0.35, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
+            Tw(Overlay, 0.4, {BackgroundTransparency = 1})
+            task.delay(0.45, function()
+                Overlay:Destroy()
+                onSelect(gameData)
+            end)
+        end)
+
+        btnY = btnY + 58
+    end
+
+    -- Skip button (Hub'ı Aç)
+    local skipBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 34), Position = UDim2.new(0.5, 0, 0, btnY + 6), BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.3, Text = "⏭  Hub'ı Aç (Manuel Seçim)", TextColor3 = T.TextSec, TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 205, Parent = DContent})
+    Corner(skipBtn, T.CRS)
+    Stroke(skipBtn, T.CardStroke, 1, 0.6)
+
+    skipBtn.MouseEnter:Connect(function() Tw(skipBtn, 0.2, {BackgroundTransparency = 0.1, TextColor3 = T.TextPri}) end)
+    skipBtn.MouseLeave:Connect(function() Tw(skipBtn, 0.2, {BackgroundTransparency = 0.3, TextColor3 = T.TextSec}) end)
+
+    skipBtn.MouseButton1Click:Connect(function()
+        Ripple(skipBtn, Vector2.new(skipBtn.AbsolutePosition.X + skipBtn.AbsoluteSize.X / 2, skipBtn.AbsolutePosition.Y + skipBtn.AbsoluteSize.Y / 2))
+        Tw(DOuter, 0.35, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
+        Tw(Overlay, 0.4, {BackgroundTransparency = 1})
+        task.delay(0.45, function()
+            Overlay:Destroy()
+            onSkip()
+        end)
+    end)
+
+    -- Footer
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 1), Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0.5, 0, 1, -2), BackgroundTransparency = 1, Text = "© IEM7R | dc:siberguvenlik | PlaceId: " .. tostring(CURRENT_PLACE_ID), TextColor3 = T.TextMut, TextSize = 9, Font = T.FB, ZIndex = 204, Parent = DContent})
+
+    -- Open animation
+    DOuter.Size = UDim2.new(0, 0, 0, 0)
+    DOuter.BackgroundTransparency = 1
+    Overlay.BackgroundTransparency = 1
+
+    task.delay(0.05, function()
+        Tw(Overlay, 0.3, {BackgroundTransparency = 0.15})
+        Tw(DOuter, 0.5, {Size = UDim2.new(0, 420, 0, dialogH), BackgroundTransparency = T.OuterT}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    end)
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- ████████████████████████████████████████████████████████████
+-- █                    KEY SYSTEM SCREEN                      █
+-- ████████████████████████████████████████████████████████████
+-- ══════════════════════════════════════════════════════════════
+
+local keyVerified = false
+
+local function showKeySystem(onSuccess)
+    if not CONFIG.KeySystemEnabled then
+        keyVerified = true
+        onSuccess()
+        return
+    end
+
+    -- Try saved key first
+    local savedKey = loadSavedKey()
+    if savedKey and savedKey ~= "" then
+        local valid = validateKey(savedKey)
+        if valid then
+            keyVerified = true
+            onSuccess()
+            return
+        end
+    end
+
+    -- Dark overlay
+    local KeyOverlay = C("Frame", {Name = "KeyOverlay", Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(5, 5, 8), BackgroundTransparency = 0.1, BorderSizePixel = 0, ZIndex = 100, Parent = SG})
+
+    local KeyOuter = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 420, 0, 370), BackgroundColor3 = T.Outer, BackgroundTransparency = T.OuterT, BorderSizePixel = 0, ZIndex = 101, ClipsDescendants = true, Parent = KeyOverlay})
+    Corner(KeyOuter, T.CRL)
+    Stroke(KeyOuter, T.OuterStroke, 1.5, T.OuterStrokeT)
+
+    local KeyPanel = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(1, -12, 1, -12), BackgroundColor3 = T.Bg, BackgroundTransparency = T.BgT, BorderSizePixel = 0, ZIndex = 102, ClipsDescendants = true, Parent = KeyOuter})
+    Corner(KeyPanel, T.CR)
+    Stroke(KeyPanel, T.PanelStroke, 1, 0.5)
+
+    -- Title bar
+    local KeyTB = C("Frame", {Size = UDim2.new(1, 0, 0, T.TBH), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 110, Parent = KeyPanel})
+    Corner(KeyTB, T.CR)
+    C("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 110, Parent = KeyTB})
+    C("TextLabel", {Size = UDim2.new(0.8, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 111, Parent = KeyTB})
+    C("Frame", {Size = UDim2.new(0, 60, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 112, Parent = KeyTB})
+
+    local KeyGlow = C("Frame", {Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 0, T.TBH), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.6, BorderSizePixel = 0, ZIndex = 105, Parent = KeyPanel})
+    Grad(KeyGlow, T.AccentGlow, Color3.new(0, 0, 0), 0)
+
+    local KeyContent = C("Frame", {Size = UDim2.new(1, -30, 1, -(T.TBH + 20)), Position = UDim2.new(0, 15, 0, T.TBH + 10), BackgroundTransparency = 1, ZIndex = 103, Parent = KeyPanel})
+
+    -- Lock icon
+    local LockRing = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0, 58, 0, 58), Position = UDim2.new(0.5, 0, 0, 0), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, ZIndex = 104, Parent = KeyContent})
+    Corner(LockRing, UDim.new(1, 0))
+    Stroke(LockRing, T.Accent, 2, 0.3)
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = "🔒", TextSize = 28, ZIndex = 105, Parent = LockRing})
+
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 20), Position = UDim2.new(0.5, 0, 0, 64), BackgroundTransparency = 1, Text = "Key Doğrulama", TextColor3 = T.TextPri, TextSize = 15, Font = T.FT, ZIndex = 104, Parent = KeyContent})
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0.9, 0, 0, 16), Position = UDim2.new(0.5, 0, 0, 86), BackgroundTransparency = 1, Text = "SYNOX HUB'a erişmek için key girin", TextColor3 = T.TextMut, TextSize = 11, Font = T.FB, ZIndex = 104, Parent = KeyContent})
+
+    -- Key input
+    local KeyInputCard = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 42), Position = UDim2.new(0.5, 0, 0, 110), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, ZIndex = 104, Parent = KeyContent})
+    Corner(KeyInputCard, T.CRS)
+    local keyInputStroke = Stroke(KeyInputCard, T.CardStroke, 1, 0.5)
+
+    C("TextLabel", {Size = UDim2.new(0, 30, 1, 0), Position = UDim2.new(0, 6, 0, 0), BackgroundTransparency = 1, Text = "🔑", TextSize = 14, ZIndex = 105, Parent = KeyInputCard})
+    local KeyInput = C("TextBox", {Size = UDim2.new(1, -44, 1, 0), Position = UDim2.new(0, 36, 0, 0), BackgroundTransparency = 1, Text = "", PlaceholderText = "SYNOX-XXXX-XXXX", PlaceholderColor3 = T.TextMut, TextColor3 = T.TextPri, TextSize = 13, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, ZIndex = 105, Parent = KeyInputCard})
+
+    KeyInput.Focused:Connect(function() Tw(keyInputStroke, 0.2, {Color = T.Accent, Transparency = 0.2}) end)
+    KeyInput.FocusLost:Connect(function() Tw(keyInputStroke, 0.2, {Color = T.CardStroke, Transparency = 0.5}) end)
+
+    local KeyStatus = C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 16), Position = UDim2.new(0.5, 0, 0, 155), BackgroundTransparency = 1, Text = "", TextColor3 = T.Red, TextSize = 11, Font = T.FH, ZIndex = 104, Parent = KeyContent})
+
+    -- Verify button
+    local VerifyBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 38), Position = UDim2.new(0.5, 0, 0, 175), BackgroundColor3 = T.BtnExec, BackgroundTransparency = 0, Text = "✓  Doğrula", TextColor3 = Color3.new(1, 1, 1), TextSize = 14, Font = T.FT, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = KeyContent})
+    Corner(VerifyBtn, T.CRS)
+    VerifyBtn.MouseEnter:Connect(function() Tw(VerifyBtn, 0.2, {BackgroundColor3 = T.BtnExecH}) end)
+    VerifyBtn.MouseLeave:Connect(function() Tw(VerifyBtn, 0.2, {BackgroundColor3 = T.BtnExec}) end)
+
+    -- Bottom buttons
+    local BtnRow = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 36), Position = UDim2.new(0.5, 0, 0, 221), BackgroundTransparency = 1, ZIndex = 104, Parent = KeyContent})
+
+    local GetKeyBtn = C("TextButton", {Size = UDim2.new(0.48, 0, 1, 0), Position = UDim2.new(0, 0, 0, 0), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, Text = "🔗  Key Al", TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = BtnRow})
+    Corner(GetKeyBtn, T.CRS)
+    Stroke(GetKeyBtn, T.Accent, 1, 0.5)
+
+    GetKeyBtn.MouseEnter:Connect(function() Tw(GetKeyBtn, 0.2, {BackgroundColor3 = T.CardHov, BackgroundTransparency = 0.15}) end)
+    GetKeyBtn.MouseLeave:Connect(function() Tw(GetKeyBtn, 0.2, {BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT}) end)
+    GetKeyBtn.MouseButton1Click:Connect(function()
+        Ripple(GetKeyBtn, Vector2.new(GetKeyBtn.AbsolutePosition.X + GetKeyBtn.AbsoluteSize.X / 2, GetKeyBtn.AbsolutePosition.Y + GetKeyBtn.AbsoluteSize.Y / 2))
+        if setclipboard then setclipboard(CONFIG.KeyGetURL) end
+        KeyStatus.TextColor3 = T.Green
+        KeyStatus.Text = "✓ Key linki kopyalandı!"
+        GetKeyBtn.Text = "✓  Kopyalandı!"
+        Tw(GetKeyBtn, 0.15, {BackgroundColor3 = T.Green, BackgroundTransparency = 0.3})
+        task.delay(2, function() KeyStatus.Text = ""; GetKeyBtn.Text = "🔗  Key Al"; Tw(GetKeyBtn, 0.25, {BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT}) end)
+    end)
+
+    local DiscBtn = C("TextButton", {Size = UDim2.new(0.48, 0, 1, 0), Position = UDim2.new(0.52, 0, 0, 0), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "🎮  Discord", TextColor3 = Color3.new(1, 1, 1), TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = BtnRow})
+    Corner(DiscBtn, T.CRS)
+    Stroke(DiscBtn, Color3.fromRGB(110, 125, 255), 1, 0.5)
+
+    DiscBtn.MouseEnter:Connect(function() Tw(DiscBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(100, 115, 255), BackgroundTransparency = 0}) end)
+    DiscBtn.MouseLeave:Connect(function() Tw(DiscBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15}) end)
+    DiscBtn.MouseButton1Click:Connect(function()
+        Ripple(DiscBtn, Vector2.new(DiscBtn.AbsolutePosition.X + DiscBtn.AbsoluteSize.X / 2, DiscBtn.AbsolutePosition.Y + DiscBtn.AbsoluteSize.Y / 2))
+        if setclipboard then setclipboard(CONFIG.DiscordLink) end
+        KeyStatus.TextColor3 = T.Green
+        KeyStatus.Text = "✓ Discord linki kopyalandı!"
+        DiscBtn.Text = "✓  Kopyalandı!"
+        Tw(DiscBtn, 0.15, {BackgroundColor3 = T.Green, BackgroundTransparency = 0.1})
+        task.delay(2, function() KeyStatus.Text = ""; DiscBtn.Text = "🎮  Discord"; Tw(DiscBtn, 0.25, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15}) end)
+    end)
+
+    -- Footer
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 1), Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0.5, 0, 1, -2), BackgroundTransparency = 1, Text = "© IEM7R | dc:siberguvenlik | SYNOX HUB v" .. CONFIG.Version, TextColor3 = T.TextMut, TextSize = 9, Font = T.FB, ZIndex = 104, Parent = KeyContent})
+
+    -- Shake animation helper
+    local function shakeInput()
+        Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, 10, 0, 110)})
+        task.delay(0.06, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, -10, 0, 110)}) end)
+        task.delay(0.12, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, 6, 0, 110)}) end)
+        task.delay(0.18, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, -6, 0, 110)}) end)
+        task.delay(0.24, function() Tw(KeyInputCard, 0.08, {Position = UDim2.new(0.5, 0, 0, 110)}) end)
+    end
+
+    -- Verify logic
+    local function tryVerify()
+        local inputKey = KeyInput.Text:match("^%s*(.-)%s*$")
+        if inputKey == "" then
+            KeyStatus.TextColor3 = T.Red
+            KeyStatus.Text = "✕ Lütfen bir key girin!"
+            shakeInput()
+            return
+        end
+
+        VerifyBtn.Text = "⏳  Doğrulanıyor..."
+        Tw(VerifyBtn, 0.15, {BackgroundColor3 = T.Yellow})
+        KeyStatus.TextColor3 = T.TextAcc
+        KeyStatus.Text = "Key kontrol ediliyor..."
+
+        task.delay(0.6, function()
+            if validateKey(inputKey) then
+                keyVerified = true
+                saveKey(inputKey)
+                KeyStatus.TextColor3 = T.Green
+                KeyStatus.Text = "✓ Key doğrulandı! SYNOX HUB yükleniyor..."
+                VerifyBtn.Text = "✓  Doğrulandı!"
+                Tw(VerifyBtn, 0.2, {BackgroundColor3 = T.Green})
+
+                for _, child in ipairs(LockRing:GetChildren()) do
+                    if child:IsA("TextLabel") then child.Text = "🔓" end
+                end
+                Tw(LockRing, 0.3, {BackgroundTransparency = 0.3})
+                local lockStroke = LockRing:FindFirstChildOfClass("UIStroke")
+                if lockStroke then Tw(lockStroke, 0.3, {Color = T.Green}) end
+
+                task.delay(1, function()
+                    Tw(KeyOuter, 0.4, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
+                    Tw(KeyOverlay, 0.5, {BackgroundTransparency = 1})
+                    task.delay(0.55, function()
+                        KeyOverlay:Destroy()
+                        onSuccess()
+                    end)
+                end)
+            else
+                KeyStatus.TextColor3 = T.Red
+                KeyStatus.Text = "✕ Geçersiz key! Tekrar deneyin."
+                VerifyBtn.Text = "✓  Doğrula"
+                Tw(VerifyBtn, 0.15, {BackgroundColor3 = T.BtnExec})
+                shakeInput()
+                Tw(keyInputStroke, 0.15, {Color = T.Red, Transparency = 0.2})
+                task.delay(1, function() Tw(keyInputStroke, 0.3, {Color = T.CardStroke, Transparency = 0.5}) end)
+            end
+        end)
+    end
+
+    VerifyBtn.MouseButton1Click:Connect(tryVerify)
+    KeyInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then tryVerify() end
+    end)
+
+    -- Open animation
+    KeyOuter.Size = UDim2.new(0, 0, 0, 0)
+    KeyOuter.BackgroundTransparency = 1
+    KeyOverlay.BackgroundTransparency = 1
+
+    task.delay(0.05, function()
+        Tw(KeyOverlay, 0.3, {BackgroundTransparency = 0.1})
+        Tw(KeyOuter, 0.5, {Size = UDim2.new(0, 420, 0, 370), BackgroundTransparency = T.OuterT}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    end)
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- ████████████████████████████████████████████████████████████
+-- █                    MAIN HUB BUILD                         █
+-- ████████████████████████████████████████████████████████████
+-- ══════════════════════════════════════════════════════════════
+
+local function buildHub()
+
+    -- ══════════════════════════════════════════════════════════
+    -- OUTER FRAME
+    -- ══════════════════════════════════════════════════════════
+    local OF = C("Frame", {Name = "Outer", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, T.WW + 12, 0, T.WH + 12), BackgroundColor3 = T.Outer, BackgroundTransparency = T.OuterT, BorderSizePixel = 0, ClipsDescendants = true, Parent = SG})
+    Corner(OF, T.CRL)
+    Stroke(OF, T.OuterStroke, 1.5, T.OuterStrokeT)
+
+    local MF = C("Frame", {Name = "Main", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(1, -12, 1, -12), BackgroundColor3 = T.Bg, BackgroundTransparency = T.BgT, BorderSizePixel = 0, ClipsDescendants = true, Parent = OF})
+    Corner(MF, T.CR)
+    Stroke(MF, T.PanelStroke, 1, 0.5)
+
+    local GL = C("Frame", {Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 0, T.TBH), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.6, BorderSizePixel = 0, ZIndex = 5, Parent = MF})
+    Grad(GL, T.AccentGlow, Color3.new(0, 0, 0), 0)
+
+    -- ══════════════════════════════════════════════════════════
+    -- TITLE BAR
+    -- ══════════════════════════════════════════════════════════
+    local TB = C("Frame", {Name = "TitleBar", Size = UDim2.new(1, 0, 0, T.TBH), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 10, Parent = MF})
+    Corner(TB, T.CR)
+    C("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 10, Parent = TB})
+
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 11, Parent = TB})
+    C("Frame", {Size = UDim2.new(0, 60, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 12, Parent = TB})
+
+    -- Close & Minimize
+    local XBtn = C("TextButton", {Size = UDim2.new(0, 30, 0, 30), Position = UDim2.new(1, -38, 0.5, -15), BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5, Text = "✕", TextColor3 = T.TextSec, TextSize = 14, Font = T.FB, BorderSizePixel = 0, ZIndex = 12, AutoButtonColor = false, Parent = TB})
+    Corner(XBtn, T.CRS)
+    local MnBtn = C("TextButton", {Size = UDim2.new(0, 30, 0, 30), Position = UDim2.new(1, -72, 0.5, -15), BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5, Text = "─", TextColor3 = T.TextSec, TextSize = 14, Font = T.FB, BorderSizePixel = 0, ZIndex = 12, AutoButtonColor = false, Parent = TB})
+    Corner(MnBtn, T.CRS)
+
+    XBtn.MouseEnter:Connect(function() Tw(XBtn, 0.2, {BackgroundColor3 = T.BtnDng, BackgroundTransparency = 0.2, TextColor3 = Color3.new(1, 1, 1)}) end)
+    XBtn.MouseLeave:Connect(function() Tw(XBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5, TextColor3 = T.TextSec}) end)
+    MnBtn.MouseEnter:Connect(function() Tw(MnBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(60, 60, 75), BackgroundTransparency = 0.2}) end)
+    MnBtn.MouseLeave:Connect(function() Tw(MnBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5}) end)
+
+    -- ══════════════════════════════════════════════════════════
+    -- DRAGGING
+    -- ══════════════════════════════════════════════════════════
+    local dragging, dragInput, dragStart, startPos = false, nil, nil, nil
+    TB.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = OF.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+        end
+    end)
+    TB.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
+    table.insert(connections, UserInputService.InputChanged:Connect(function(input) if input == dragInput and dragging then local d = input.Position - dragStart; OF.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y) end end))
+
+    -- ══════════════════════════════════════════════════════════
+    -- CONTENT AREA
+    -- ══════════════════════════════════════════════════════════
+    local CA = C("Frame", {Name = "Content", Size = UDim2.new(1, 0, 1, -T.TBH), Position = UDim2.new(0, 0, 0, T.TBH), BackgroundTransparency = 1, ClipsDescendants = true, Parent = MF})
+
+    -- Tab bar
+    local TBar = C("Frame", {Size = UDim2.new(1, -20, 0, T.TABH), Position = UDim2.new(0, 10, 0, 6), BackgroundTransparency = 1, Parent = CA})
+    C("UIListLayout", {FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = TBar})
+
+    -- Page container
+    local PC = C("Frame", {Name = "Pages", Size = UDim2.new(1, -20, 1, -(T.TABH + 18)), Position = UDim2.new(0, 10, 0, T.TABH + 12), BackgroundColor3 = T.Panel, BackgroundTransparency = T.PanelT, BorderSizePixel = 0, ClipsDescendants = true, Parent = CA})
+    Corner(PC, T.CR)
+    Stroke(PC, T.PanelStroke, 1, 0.6)
+
+    -- ══════════════════════════════════════════════════════════
+    -- HOME PAGE
+    -- ══════════════════════════════════════════════════════════
+    local HP = C("Frame", {Name = "Home", Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Visible = true, Parent = PC})
+    Pad(HP, 10, 12, 10, 12)
+
+    -- Profile card
+    local ProfFrame = C("Frame", {Size = UDim2.new(1, 0, 0, 80), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = HP})
+    Corner(ProfFrame, T.CRS); Stroke(ProfFrame, T.CardStroke, 1, 0.6)
+
+    local AvatarC = C("Frame", {Size = UDim2.new(0, 55, 0, 55), Position = UDim2.new(0, 12, 0.5, -27), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, Parent = ProfFrame})
+    Corner(AvatarC, UDim.new(1, 0)); Stroke(AvatarC, T.Accent, 2, 0.3)
+    local AvatarImg = C("ImageLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 47, 0, 47), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(40, 40, 50), BorderSizePixel = 0, Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(LocalPlayer.UserId) .. "&w=150&h=150", Parent = AvatarC})
+    Corner(AvatarImg, UDim.new(1, 0))
+
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 18), Position = UDim2.new(0, 78, 0, 14), BackgroundTransparency = 1, Text = "@" .. LocalPlayer.Name, TextColor3 = T.TextPri, TextSize = 14, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = ProfFrame})
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 14), Position = UDim2.new(0, 78, 0, 34), BackgroundTransparency = 1, Text = "SYNOX HUB v" .. CONFIG.Version .. " • Premium", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = ProfFrame})
+    local OD = C("Frame", {Size = UDim2.new(0, 7, 0, 7), Position = UDim2.new(0, 78, 0, 55), BackgroundColor3 = T.Green, BorderSizePixel = 0, Parent = ProfFrame})
+    Corner(OD, UDim.new(1, 0))
+    C("TextLabel", {Size = UDim2.new(0.4, 0, 0, 12), Position = UDim2.new(0, 89, 0, 53), BackgroundTransparency = 1, Text = "Online", TextColor3 = T.Green, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = ProfFrame})
+
+    -- Stats row
+    local StatsRow = C("Frame", {Size = UDim2.new(1, 0, 0, 48), Position = UDim2.new(0, 0, 0, 88), BackgroundTransparency = 1, Parent = HP})
+
+    local PKC = C("Frame", {Size = UDim2.new(0.32, -4, 1, 0), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = StatsRow})
+    Corner(PKC, T.CRS); Stroke(PKC, T.CardStroke, 1, 0.6); Pad(PKC, 6, 8, 6, 8)
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 12), BackgroundTransparency = 1, Text = "PING", TextColor3 = T.TextMut, TextSize = 9, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = PKC})
+    local PV = C("TextLabel", {Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 0, 13), BackgroundTransparency = 1, Text = "0 ms", TextColor3 = T.TextAcc, TextSize = 17, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, Parent = PKC})
+
+    local FKC = C("Frame", {Size = UDim2.new(0.32, -4, 1, 0), Position = UDim2.new(0.34, 0, 0, 0), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = StatsRow})
+    Corner(FKC, T.CRS); Stroke(FKC, T.CardStroke, 1, 0.6); Pad(FKC, 6, 8, 6, 8)
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 12), BackgroundTransparency = 1, Text = "FPS", TextColor3 = T.TextMut, TextSize = 9, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = FKC})
+    local FV = C("TextLabel", {Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 0, 13), BackgroundTransparency = 1, Text = "60", TextColor3 = T.TextAcc, TextSize = 17, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, Parent = FKC})
+
+    local GLC = C("Frame", {Size = UDim2.new(0.34, 0, 1, 0), Position = UDim2.new(0.66, 0, 0, 0), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = StatsRow})
+    Corner(GLC, T.CRS); Stroke(GLC, T.CardStroke, 1, 0.6); Pad(GLC, 6, 8, 6, 8)
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 12), BackgroundTransparency = 1, Text = "SCRIPTS", TextColor3 = T.TextMut, TextSize = 9, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = GLC})
+    local GV = C("TextLabel", {Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 0, 13), BackgroundTransparency = 1, Text = "0", TextColor3 = T.TextAcc, TextSize = 17, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, Parent = GLC})
+
+    -- Status section
+    local SSec = C("Frame", {Size = UDim2.new(1, 0, 0, 60), Position = UDim2.new(0, 0, 0, 143), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = HP})
+    Corner(SSec, T.CRS); Stroke(SSec, T.CardStroke, 1, 0.6); Pad(SSec, 7, 10, 7, 10)
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 12), BackgroundTransparency = 1, Text = "STATUS", TextColor3 = T.TextMut, TextSize = 9, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = SSec})
+    local SValLabel = C("TextLabel", {Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0, 0, 0, 14), BackgroundTransparency = 1, Text = "Connected • All Systems Online", TextColor3 = T.Green, TextSize = 11, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = SSec})
+    local SDet = C("TextLabel", {Size = UDim2.new(1, 0, 0, 12), Position = UDim2.new(0, 0, 0, 30), BackgroundTransparency = 1, Text = "• 0 scripts loaded   • PlaceId: " .. tostring(CURRENT_PLACE_ID), TextColor3 = T.TextSec, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = SSec})
+
+    -- Auto-detect badge
+    if #autoDetectedGames > 0 then
+        SValLabel.Text = "Connected • Oyun Tespit Edildi: " .. autoDetectedGames[1].Name
+        SValLabel.TextColor3 = T.Accent
+    end
+
+    -- ══════════════════════════════════════════════════════════
+    -- GAMES PAGE
+    -- ══════════════════════════════════════════════════════════
+    local GP = C("Frame", {Name = "Games", Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Visible = false, ClipsDescendants = true, Parent = PC})
+
+    local GameListView = C("Frame", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Visible = true, Parent = GP})
+    local GameListScroll = C("ScrollingFrame", {Size = UDim2.new(1, -8, 1, -8), Position = UDim2.new(0, 4, 0, 4), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = T.Scroll, ScrollBarImageTransparency = 0.5, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = GameListView})
+    C("UIListLayout", {Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = GameListScroll})
+    Pad(GameListScroll, 6, 6, 6, 6)
+
+    -- Game detail view
+    local GameDetailView = C("Frame", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Visible = false, ClipsDescendants = true, Parent = GP})
+    Pad(GameDetailView, 10, 12, 10, 12)
+
+    local BackBtn = C("TextButton", {Size = UDim2.new(0, 38, 0, 38), BackgroundColor3 = Color3.fromRGB(30, 30, 38), BackgroundTransparency = 0.2, Text = "‹", TextColor3 = T.TextPri, TextSize = 24, Font = T.FT, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 3, Parent = GameDetailView})
+    Corner(BackBtn, UDim.new(1, 0)); Stroke(BackBtn, T.CardStroke, 1, 0.5)
+    BackBtn.MouseEnter:Connect(function() Tw(BackBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(45, 45, 58), BackgroundTransparency = 0}) end)
+    BackBtn.MouseLeave:Connect(function() Tw(BackBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(30, 30, 38), BackgroundTransparency = 0.2}) end)
+
+    local DetailPanel = C("Frame", {Size = UDim2.new(1, 0, 0, 140), Position = UDim2.new(0, 0, 0, 46), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = GameDetailView})
+    Corner(DetailPanel, T.CRS); Stroke(DetailPanel, T.CardStroke, 1, 0.6)
+
+    local DetailThumb = C("ImageLabel", {Size = UDim2.new(0, 120, 0, 120), Position = UDim2.new(0, 10, 0.5, -60), BackgroundColor3 = T.ThumbBg, BorderSizePixel = 0, Image = "", ScaleType = Enum.ScaleType.Crop, Parent = DetailPanel})
+    Corner(DetailThumb, T.CRS)
+    local DetailThumbPlaceholder = C("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "🖼️", TextSize = 36, Font = T.FB, TextColor3 = T.TextMut, Parent = DetailThumb})
+
+    local DetailName = C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 24), Position = UDim2.new(0, 142, 0, 18), BackgroundTransparency = 1, Text = "Game Name", TextColor3 = T.TextPri, TextSize = 18, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = DetailPanel})
+    local DetailTag = C("TextLabel", {Size = UDim2.new(0, 90, 0, 18), Position = UDim2.new(0, 142, 0, 46), BackgroundColor3 = Color3.fromRGB(0, 120, 150), BackgroundTransparency = 0.7, Text = " Supported ", TextColor3 = T.TextAcc, TextSize = 10, Font = T.FB, Parent = DetailPanel})
+    Corner(DetailTag, UDim.new(0, 3))
+
+    local DetailExecBtn = C("TextButton", {Size = UDim2.new(0, 150, 0, 40), Position = UDim2.new(0, 142, 0, 78), BackgroundColor3 = T.BtnExec, Text = "Çalıştır", TextColor3 = Color3.new(1, 1, 1), TextSize = 15, Font = T.FT, BorderSizePixel = 0, AutoButtonColor = false, Parent = DetailPanel})
+    Corner(DetailExecBtn, T.CRS)
+    DetailExecBtn.MouseEnter:Connect(function() Tw(DetailExecBtn, 0.2, {BackgroundColor3 = T.BtnExecH}) end)
+    DetailExecBtn.MouseLeave:Connect(function() Tw(DetailExecBtn, 0.2, {BackgroundColor3 = T.BtnExec}) end)
+
+    local DescSection = C("Frame", {Size = UDim2.new(1, 0, 1, -196), Position = UDim2.new(0, 0, 0, 192), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, ClipsDescendants = true, Parent = GameDetailView})
+    Corner(DescSection, T.CRS); Stroke(DescSection, T.CardStroke, 1, 0.6); Pad(DescSection, 10, 12, 10, 12)
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 14), BackgroundTransparency = 1, Text = "AÇIKLAMA", TextColor3 = T.TextMut, TextSize = 10, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DescSection})
+    local DescScroll = C("ScrollingFrame", {Size = UDim2.new(1, 0, 1, -20), Position = UDim2.new(0, 0, 0, 18), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = T.Scroll, ScrollBarImageTransparency = 0.5, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = DescSection})
+    local DescText = C("TextLabel", {Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1, Text = "", TextColor3 = T.TextPri, TextSize = 13, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, AutomaticSize = Enum.AutomaticSize.Y, Parent = DescScroll})
+
+    local currentDetailGame = nil
+
+    -- ══════════════════════════════════════════════════════════
+    -- SEARCH PAGE
+    -- ══════════════════════════════════════════════════════════
+    local SeP = C("Frame", {Name = "Search", Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Visible = false, Parent = PC})
+    Pad(SeP, 8, 8, 8, 8)
+
+    local SBC = C("Frame", {Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SeP})
+    Corner(SBC, T.CRS); Stroke(SBC, T.CardStroke, 1, 0.6)
+    C("TextLabel", {Size = UDim2.new(0, 30, 1, 0), Position = UDim2.new(0, 4, 0, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14, Font = T.FB, Parent = SBC})
+    local SI = C("TextBox", {Size = UDim2.new(1, -40, 1, 0), Position = UDim2.new(0, 34, 0, 0), BackgroundTransparency = 1, Text = "", PlaceholderText = "Script ara...", PlaceholderColor3 = T.TextMut, TextColor3 = T.TextPri, TextSize = 13, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = SBC})
+
+    SI.Focused:Connect(function() local s = SBC:FindFirstChildOfClass("UIStroke"); if s then Tw(s, 0.2, {Color = T.Accent, Transparency = 0.3}) end end)
+    SI.FocusLost:Connect(function() local s = SBC:FindFirstChildOfClass("UIStroke"); if s then Tw(s, 0.2, {Color = T.CardStroke, Transparency = 0.6}) end end)
+
+    local SRS = C("ScrollingFrame", {Size = UDim2.new(1, 0, 1, -44), Position = UDim2.new(0, 0, 0, 42), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = T.Scroll, ScrollBarImageTransparency = 0.5, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = SeP})
+    C("UIListLayout", {Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = SRS})
+    Pad(SRS, 4, 4, 4, 4)
+    local NR = C("TextLabel", {Name = "NR", Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, Text = "Script aramak için yazın...", TextColor3 = T.TextMut, TextSize = 12, Font = T.FB, Parent = SRS})
+
+    -- ══════════════════════════════════════════════════════════
+    -- SETTINGS PAGE
+    -- ══════════════════════════════════════════════════════════
+    local SetP = C("Frame", {Name = "Settings", Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Visible = false, Parent = PC})
+    Pad(SetP, 10, 12, 10, 12)
+
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "⚙️  Ayarlar", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, Parent = SetP})
+    C("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 0, 26), BackgroundColor3 = T.CardStroke, BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = SetP})
+
+    -- Hotkey setting
+    local HotkeyCard = C("Frame", {Size = UDim2.new(1, 0, 0, 65), Position = UDim2.new(0, 0, 0, 34), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    Corner(HotkeyCard, T.CRS); Stroke(HotkeyCard, T.CardStroke, 1, 0.6); Pad(HotkeyCard, 10, 12, 10, 12)
+
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "Toggle Hotkey", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = HotkeyCard})
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 14), Position = UDim2.new(0, 0, 0, 18), BackgroundTransparency = 1, Text = "Butona basıp herhangi bir tuş seçin", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = HotkeyCard})
+
+    local HotkeyBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 140, 0, 32), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.InputBg, Text = KeyNames[currentHotkey] or "RightControl", TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = HotkeyCard})
+    Corner(HotkeyBtn, T.CRS); Stroke(HotkeyBtn, T.CardStroke, 1, 0.5)
+
+    local listeningForHotkey = false
+    local hotkeyConnection = nil
+
+    HotkeyBtn.MouseButton1Click:Connect(function()
+        if listeningForHotkey then return end
+        listeningForHotkey = true
+        HotkeyBtn.Text = "Bir tuşa basın..."
+        HotkeyBtn.TextColor3 = T.Yellow
+        local stroke = HotkeyBtn:FindFirstChildOfClass("UIStroke")
+        if stroke then Tw(stroke, 0.2, {Color = T.Yellow}) end
+
+        hotkeyConnection = UserInputService.InputBegan:Connect(function(input, gp)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                currentHotkey = input.KeyCode
+                HotkeyBtn.Text = KeyNames[input.KeyCode] or input.KeyCode.Name
+                HotkeyBtn.TextColor3 = T.TextAcc
+                if stroke then Tw(stroke, 0.2, {Color = T.CardStroke}) end
+                listeningForHotkey = false
+                if hotkeyConnection then hotkeyConnection:Disconnect(); hotkeyConnection = nil end
+                NInfo("SYNOX HUB", "Toggle hotkey değiştirildi: " .. (KeyNames[input.KeyCode] or input.KeyCode.Name))
+            end
+        end)
+    end)
+
+    HotkeyBtn.MouseEnter:Connect(function() if not listeningForHotkey then Tw(HotkeyBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(30, 30, 38)}) end end)
+    HotkeyBtn.MouseLeave:Connect(function() if not listeningForHotkey then Tw(HotkeyBtn, 0.2, {BackgroundColor3 = T.InputBg}) end end)
+
+    -- Key info card
+    local KeyInfoCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 106), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    Corner(KeyInfoCard, T.CRS); Stroke(KeyInfoCard, T.CardStroke, 1, 0.6); Pad(KeyInfoCard, 10, 12, 10, 12)
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "Key Durumu", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyInfoCard})
+    local KeyStatusBadge = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 22), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Green, BackgroundTransparency = 0.8, Text = "✓ Doğrulandı", TextColor3 = T.Green, TextSize = 11, Font = T.FH, BorderSizePixel = 0, Parent = KeyInfoCard})
+    Corner(KeyStatusBadge, UDim.new(0, 3))
+
+    -- Version card
+    local VerCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 163), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    Corner(VerCard, T.CRS); Stroke(VerCard, T.CardStroke, 1, 0.6); Pad(VerCard, 10, 12, 10, 12)
+    C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Versiyon", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = VerCard})
+    C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 80, 0, 16), Position = UDim2.new(1, 0, 0.5, 0), BackgroundTransparency = 1, Text = "v" .. CONFIG.Version, TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Right, Parent = VerCard})
+
+    -- Discord card
+    local DiscCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 220), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    Corner(DiscCard, T.CRS); Stroke(DiscCard, T.CardStroke, 1, 0.6); Pad(DiscCard, 10, 12, 10, 12)
+    C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Discord", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DiscCard})
+    local CopyDiscBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "Linki Kopyala", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = DiscCard})
+    Corner(CopyDiscBtn, T.CRS)
+
+    CopyDiscBtn.MouseButton1Click:Connect(function()
+        if setclipboard then setclipboard(CONFIG.DiscordLink) end
+        CopyDiscBtn.Text = "✓ Kopyalandı!"
+        task.delay(1.5, function() CopyDiscBtn.Text = "Linki Kopyala" end)
+    end)
+    CopyDiscBtn.MouseEnter:Connect(function() Tw(CopyDiscBtn, 0.2, {BackgroundTransparency = 0}) end)
+    CopyDiscBtn.MouseLeave:Connect(function() Tw(CopyDiscBtn, 0.2, {BackgroundTransparency = 0.15}) end)
+
+    -- ══════════════════════════════════════════════════════════
+    -- TAB SWITCHING
+    -- ══════════════════════════════════════════════════════════
+    pages = {Home = HP, Games = GP, Search = SeP, Settings = SetP}
+
+    local function switchTab(name)
+        if activeTab == name then return end
+        activeTab = name
+        if name ~= "Games" then GameListView.Visible = true; GameDetailView.Visible = false end
+        for n, p in pairs(pages) do p.Visible = (n == name) end
+        for n, btn in pairs(tabs) do
+            local isActive = (n == name)
+            Tw(btn, 0.25, {BackgroundColor3 = isActive and T.TabAct or T.TabIn, BackgroundTransparency = isActive and T.TabActT or T.TabInT})
+            local tt = btn:FindFirstChild("TT"); local al = btn:FindFirstChild("AL")
+            if tt then Tw(tt, 0.25, {TextColor3 = isActive and T.TextAcc or T.TextSec}) end
+            if al then Tw(al, 0.25, {BackgroundTransparency = isActive and 0.2 or 1}) end
+            local s = btn:FindFirstChildOfClass("UIStroke")
+            if s then Tw(s, 0.25, {Color = isActive and T.Accent or T.TabStroke, Transparency = isActive and 0.4 or 0.6}) end
+        end
+    end
+
+    local tabNames = {"Home", "Games", "Search", "Settings"}
+    local tabIcons = {Home = "🏠", Games = "🎮", Search = "🔍", Settings = "⚙️"}
+
+    for i, name in ipairs(tabNames) do
+        local isFirst = (i == 1)
+        local btn = C("TextButton", {Size = UDim2.new(0, 110, 0, 32), BackgroundColor3 = isFirst and T.TabAct or T.TabIn, BackgroundTransparency = isFirst and T.TabActT or T.TabInT, Text = "", BorderSizePixel = 0, AutoButtonColor = false, LayoutOrder = i, Parent = TBar})
+        Corner(btn, T.CRS); Stroke(btn, isFirst and T.Accent or T.TabStroke, 1, isFirst and 0.4 or 0.6)
+        C("TextLabel", {Name = "TT", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = tabIcons[name] .. "  " .. name, TextColor3 = isFirst and T.TextAcc or T.TextSec, TextSize = 11, Font = T.FH, Parent = btn})
+        C("Frame", {Name = "AL", Size = UDim2.new(0.6, 0, 0, 2), Position = UDim2.new(0.2, 0, 1, -3), BackgroundColor3 = T.Accent, BackgroundTransparency = isFirst and 0.2 or 1, BorderSizePixel = 0, Parent = btn})
+        tabs[name] = btn
+        btn.MouseButton1Click:Connect(function()
+            Ripple(btn, Vector2.new(btn.AbsolutePosition.X + btn.AbsoluteSize.X / 2, btn.AbsolutePosition.Y + btn.AbsoluteSize.Y / 2))
+            switchTab(name)
+        end)
+        btn.MouseEnter:Connect(function() if activeTab ~= name then Tw(btn, 0.15, {BackgroundTransparency = 0.3}) end end)
+        btn.MouseLeave:Connect(function() if activeTab ~= name then Tw(btn, 0.15, {BackgroundTransparency = T.TabInT}) end end)
+    end
+
+    -- ══════════════════════════════════════════════════════════
+    -- GAME DETAIL LOGIC
+    -- ══════════════════════════════════════════════════════════
+    local function openGameDetail(gameData)
+        currentDetailGame = gameData
+        if gameData.ImageId and gameData.ImageId ~= "" then
+            DetailThumb.Image = gameData.ImageId; DetailThumbPlaceholder.Visible = false
+        else DetailThumb.Image = ""; DetailThumbPlaceholder.Visible = true end
+        DetailName.Text = gameData.Name or "Unknown"
+        DetailTag.Text = " " .. (gameData.Tag or "Supported") .. " "
+        DescText.Text = gameData.Description or "Açıklama yok."
+        DetailExecBtn.Text = "Çalıştır"
+        Tw(DetailExecBtn, 0.1, {BackgroundColor3 = T.BtnExec})
+
+        if activeTab ~= "Games" then switchTab("Games") end
+        GameListView.Visible = false
+        GameDetailView.Visible = true
+        DetailPanel.Position = UDim2.new(0.05, 0, 0, 46)
+        DetailPanel.BackgroundTransparency = 1
+        DescSection.BackgroundTransparency = 1
+        Tw(DetailPanel, 0.35, {Position = UDim2.new(0, 0, 0, 46), BackgroundTransparency = T.CardT})
+        Tw(DescSection, 0.35, {BackgroundTransparency = T.CardT})
+    end
+
+    BackBtn.MouseButton1Click:Connect(function()
+        Ripple(BackBtn, Vector2.new(BackBtn.AbsolutePosition.X + 19, BackBtn.AbsolutePosition.Y + 19))
+        currentDetailGame = nil
+        GameDetailView.Visible = false
+        GameListView.Visible = true
+    end)
+
+    DetailExecBtn.MouseButton1Click:Connect(function()
+        if not currentDetailGame then return end
+        Ripple(DetailExecBtn, Vector2.new(DetailExecBtn.AbsolutePosition.X + 75, DetailExecBtn.AbsolutePosition.Y + 20))
+        DetailExecBtn.Text = "Yükleniyor..."
+        Tw(DetailExecBtn, 0.15, {BackgroundColor3 = Color3.fromRGB(30, 160, 40)})
+        local ok, err = pcall(function()
+            if currentDetailGame.Callback then currentDetailGame.Callback()
+            elseif currentDetailGame.URL then loadstring(game:HttpGet(currentDetailGame.URL))() end
+        end)
+        task.delay(0.5, function()
+            if ok then
+                DetailExecBtn.Text = "✓ Yüklendi"; Tw(DetailExecBtn, 0.15, {BackgroundColor3 = T.Green})
+                NInfo("SYNOX HUB", currentDetailGame.Name .. " başarıyla yüklendi!")
+            else
+                DetailExecBtn.Text = "✕ Hata"; Tw(DetailExecBtn, 0.15, {BackgroundColor3 = T.BtnDng})
+                NError("Hata", currentDetailGame.Name .. " yüklenemedi:\n" .. tostring(err))
+            end
+            task.delay(2, function() DetailExecBtn.Text = "Çalıştır"; Tw(DetailExecBtn, 0.25, {BackgroundColor3 = T.BtnExec}) end)
+        end)
+    end)
+
+    -- ══════════════════════════════════════════════════════════
+    -- GAME CARD BUILDER
+    -- ══════════════════════════════════════════════════════════
+    local function makeGameCard(gameData, parent, layoutOrder)
+        local isDetected = false
+        for _, pid in ipairs(gameData.PlaceIds or {}) do
+            if pid == CURRENT_PLACE_ID then isDetected = true; break end
+        end
+
+        local card = C("TextButton", {Size = UDim2.new(1, 0, 0, 85), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, LayoutOrder = layoutOrder or 0, Text = "", AutoButtonColor = false, Parent = parent})
+        Corner(card, T.CRS); Stroke(card, isDetected and T.Accent or T.CardStroke, 1, isDetected and 0.3 or 0.6)
+
+        local thumb = C("ImageLabel", {Size = UDim2.new(0, 70, 0, 70), Position = UDim2.new(0, 8, 0.5, -35), BackgroundColor3 = T.ThumbBg, BorderSizePixel = 0, ScaleType = Enum.ScaleType.Crop, Parent = card})
+        Corner(thumb, T.CRS)
+        if gameData.ImageId and gameData.ImageId ~= "" then
+            thumb.Image = gameData.ImageId
+        else
+            C("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = gameData.Icon or "🖼️", TextSize = 26, Font = T.FB, TextColor3 = T.TextMut, Parent = thumb})
+        end
+
+        C("TextLabel", {Size = UDim2.new(0.5, -10, 0, 18), Position = UDim2.new(0, 86, 0, 12), BackgroundTransparency = 1, Text = gameData.Name or "Unknown", TextColor3 = T.TextPri, TextSize = 14, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = card})
+
+        -- Tags row
+        local tagX = 86
+        local gt = C("TextLabel", {Size = UDim2.new(0, 75, 0, 16), Position = UDim2.new(0, tagX, 0, 34), BackgroundColor3 = Color3.fromRGB(0, 120, 150), BackgroundTransparency = 0.7, Text = " " .. (gameData.Tag or "Supported") .. " ", TextColor3 = T.TextAcc, TextSize = 9, Font = T.FB, Parent = card})
+        Corner(gt, UDim.new(0, 3))
+
+        if isDetected then
+            local dtag = C("TextLabel", {Size = UDim2.new(0, 65, 0, 16), Position = UDim2.new(0, tagX + 80, 0, 34), BackgroundColor3 = T.Green, BackgroundTransparency = 0.7, Text = " ✓ Aktif ", TextColor3 = T.Green, TextSize = 9, Font = T.FH, Parent = card})
+            Corner(dtag, UDim.new(0, 3))
+        end
+
+        C("TextLabel", {Size = UDim2.new(0.5, -10, 0, 14), Position = UDim2.new(0, 86, 0, 54), BackgroundTransparency = 1, Text = gameData.ShortDesc or "Detaylar için tıklayın", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = card})
+        C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -10, 0.5, 0), BackgroundTransparency = 1, Text = "›", TextColor3 = T.TextMut, TextSize = 22, Font = T.FT, Parent = card})
+
+        card.MouseEnter:Connect(function()
+            Tw(card, 0.2, {BackgroundColor3 = T.CardHov, BackgroundTransparency = 0.2})
+            local s = card:FindFirstChildOfClass("UIStroke"); if s then Tw(s, 0.2, {Color = T.Accent, Transparency = 0.3}) end
+        end)
+        card.MouseLeave:Connect(function()
+            Tw(card, 0.2, {BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT})
+            local s = card:FindFirstChildOfClass("UIStroke"); if s then Tw(s, 0.2, {Color = isDetected and T.Accent or T.CardStroke, Transparency = isDetected and 0.3 or 0.6}) end
+        end)
+        card.MouseButton1Click:Connect(function()
+            Ripple(card, Vector2.new(card.AbsolutePosition.X + card.AbsoluteSize.X / 2, card.AbsolutePosition.Y + card.AbsoluteSize.Y / 2))
+            openGameDetail(gameData)
+        end)
+        return card
+    end
+
+    -- ══════════════════════════════════════════════════════════
+    -- SEARCH
+    -- ══════════════════════════════════════════════════════════
+    local function doSearch(q)
+        for _, ch in ipairs(SRS:GetChildren()) do
+            if ch:IsA("TextButton") then ch:Destroy() end
+        end
+        if q == "" then NR.Text = "Script aramak için yazın..."; NR.Visible = true; return end
+        local ql = string.lower(q)
+        local results = {}
+        for _, gd in ipairs(gamesList) do
+            if string.find(string.lower(gd.Name or ""), ql) or string.find(string.lower(gd.Description or ""), ql) or string.find(string.lower(gd.Tag or ""), ql) then
+                table.insert(results, gd)
+            end
+        end
+        if #results == 0 then NR.Text = '"' .. q .. '" için sonuç bulunamadı'; NR.Visible = true
+        else NR.Visible = false; for i, gd in ipairs(results) do makeGameCard(gd, SRS, i) end end
+    end
+
+    SI:GetPropertyChangedSignal("Text"):Connect(function() doSearch(SI.Text) end)
+
+    -- ══════════════════════════════════════════════════════════
+    -- ADD GAME FUNCTION
+    -- ══════════════════════════════════════════════════════════
+    local function AddGame(gameData)
+        table.insert(gamesList, gameData)
+        makeGameCard(gameData, GameListScroll, #gamesList)
+        GV.Text = tostring(#gamesList)
+        SDet.Text = "• " .. tostring(#gamesList) .. " script yüklü   • PlaceId: " .. tostring(CURRENT_PLACE_ID)
+    end
+
+    -- ══════════════════════════════════════════════════════════
+    -- LIVE STATS
+    -- ══════════════════════════════════════════════════════════
+    local fpsBuf, fpsCnt = {}, 0
+    table.insert(connections, RunService.RenderStepped:Connect(function(dt)
+        if destroyed then return end
+        fpsCnt = fpsCnt + 1; table.insert(fpsBuf, 1 / dt)
+        if fpsCnt >= 30 then
+            fpsCnt = 0
+            local total = 0; for _, f in ipairs(fpsBuf) do total = total + f end
+            local avg = math.floor(total / #fpsBuf); fpsBuf = {}
+            FV.Text = tostring(avg)
+            FV.TextColor3 = avg >= 50 and T.Green or (avg >= 30 and T.Yellow or T.Red)
+            local ping = GetPing(); PV.Text = tostring(ping) .. " ms"
+            PV.TextColor3 = ping <= 80 and T.Green or (ping <= 150 and T.Yellow or T.Red)
+        end
+    end))
+
+    -- ══════════════════════════════════════════════════════════
+    -- CLOSE & MINIMIZE
+    -- ══════════════════════════════════════════════════════════
+    XBtn.MouseButton1Click:Connect(function()
+        NConfirm("SYNOX HUB", "SYNOX HUB'ı kapatmak istediğinize emin misiniz?", function(yes)
+            if yes then
+                destroyed = true
+                for _, c in ipairs(connections) do if c and c.Connected then c:Disconnect() end end
+                Tw(OF, 0.35, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
+                task.delay(0.4, function() SG:Destroy() end)
+            end
+        end)
+    end)
+
+    MnBtn.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        if minimized then
+            Tw(OF, 0.35, {Size = UDim2.new(0, T.WW + 12, 0, T.TBH + 20)})
+            MnBtn.Text = "□"
+        else
+            Tw(OF, 0.35, {Size = UDim2.new(0, T.WW + 12, 0, T.WH + 12)})
+            MnBtn.Text = "─"
+        end
+    end)
+
+    -- ══════════════════════════════════════════════════════════
+    -- HOTKEY TOGGLE
+    -- ══════════════════════════════════════════════════════════
+    table.insert(connections, UserInputService.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if listeningForHotkey then return end
+        if input.KeyCode == currentHotkey then
+            hubVisible = not hubVisible
+            OF.Visible = hubVisible
+        end
+    end))
+
+    -- ══════════════════════════════════════════════════════════
+    -- OPEN ANIMATION
+    -- ══════════════════════════════════════════════════════════
+    OF.Size = UDim2.new(0, 0, 0, 0)
+    OF.BackgroundTransparency = 1
+
+    task.delay(0.05, function()
+        Tw(OF, 0.5, {Size = UDim2.new(0, T.WW + 12, 0, T.WH + 12), BackgroundTransparency = T.OuterT}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    end)
+
+    -- ══════════════════════════════════════════════════════════
+    -- ██████████████████████████████████████████████████████████
+    -- █              REGISTER ALL GAME SCRIPTS                █
+    -- ██████████████████████████████████████████████████████████
+    -- ══════════════════════════════════════════════════════════
+
+    -- Register all games from GAME_REGISTRY
+    for _, entry in ipairs(GAME_REGISTRY) do
+        AddGame(entry)
+    end
+
+    -- Universal Script (her oyunda çalışır)
+    AddGame({
+        PlaceIds = {},
+        Name = "Universal Script",
+        Description = "Her oyunda çalışan universal script.\n\nÖzellikler:\n• Speed Hack\n• Jump Power\n• Fly Mode\n• Noclip\n• Fullbright\n• Click Teleport (Ctrl+Click)\n• ESP Overlay",
+        ShortDesc = "Speed, Fly, Noclip, ESP, Fullbright",
+        Tag = "Universal",
+        Icon = "🌐",
+        ImageId = "",
+        Callback = function()
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = 50
+                humanoid.JumpPower = 120
+                humanoid.UseJumpPower = true
+            end
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+            Lighting.Ambient = Color3.fromRGB(178, 178, 178)
+            for _, effect in ipairs(Lighting:GetChildren()) do
+                if effect:IsA("BlurEffect") or effect:IsA("ColorCorrectionEffect") or effect:IsA("AtmosphereEffect") then
+                    effect.Enabled = false
+                end
+            end
+            NInfo("SYNOX HUB", "Universal Script yüklendi!\n• Speed: 50\n• JumpPower: 120\n• Fullbright aktif")
+        end
+    })
+
+    -- Infinite Yield
+    AddGame({
+        PlaceIds = {},
+        Name = "Infinite Yield",
+        Description = "FE Admin komut arayüzü.\n\nÖzellikler:\n• 200+ komut\n• Admin paneli\n• Oyuncu yönetimi\n• Teleport sistemi",
+        ShortDesc = "FE Admin, 200+ Komut",
+        Tag = "Universal",
+        Icon = "🔧",
+        ImageId = "",
+        URL = "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"
+    })
+
+    -- Startup notification
+    task.delay(1, function()
+        local detectMsg = ""
+        if #autoDetectedGames > 0 then
+            detectMsg = "\n\n🎮 Oyun tespit edildi: " .. autoDetectedGames[1].Name
+        end
+        NInfo("SYNOX HUB", "Hoş geldin, @" .. LocalPlayer.Name .. "!\nSYNOX HUB v" .. CONFIG.Version .. " yüklendi.\n\n• " .. tostring(#gamesList) .. " script hazır\n• " .. (KeyNames[currentHotkey] or "RightControl") .. " ile aç/kapat" .. detectMsg)
+    end)
+
+    print("[SYNOX HUB] v" .. CONFIG.Version .. " Loaded • " .. tostring(#gamesList) .. " scripts • PlaceId: " .. tostring(CURRENT_PLACE_ID))
+end
+
+-- ══════════════════════════════════════════════════════════════
+-- ████████████████████████████████████████████████████████████
+-- █                LAUNCH SEQUENCE                            █
+-- ████████████████████████████████████████████████████████████
+-- ══════════════════════════════════════════════════════════════
+
+showKeySystem(function()
+    -- Key verified — now check auto-detection
+    if CONFIG.AutoDetectEnabled and #autoDetectedGames > 0 then
+        if #autoDetectedGames == 1 then
+            -- Tek script tespit edildi → direkt sor: çalıştır mı yoksa hub aç mı?
+            showSelectionDialog(autoDetectedGames, function(selectedGame)
+                -- Kullanıcı çalıştırmayı seçti
+                buildHub()
+                task.delay(0.5, function()
+                    executeGameScript(selectedGame)
+                end)
+            end, function()
+                -- Kullanıcı hub'ı seçti
+                buildHub()
+            end)
+        else
+            -- Birden fazla script tespit edildi → hepsini göster
+            showSelectionDialog(autoDetectedGames, function(selectedGame)
+                buildHub()
+                task.delay(0.5, function()
+                    executeGameScript(selectedGame)
+                end)
+            end, function()
+                buildHub()
+            end)
+        end
+    else
+        -- Oyun tespit edilemedi → direkt hub aç
+        buildHub()
+    end
+end)
