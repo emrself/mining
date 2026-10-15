@@ -26,81 +26,9 @@ local dead=false
 local conns={}
 
 local CONFIG={
-    KeySystemEnabled=true,
-    KeyCheckURL="https://raw.githubusercontent.com/emrself/mining/main/keys.txt",
     DiscordLink="https://discord.gg/hHQ97ATpR9",
     DefaultHotkey=Enum.KeyCode.RightControl,
 }
-local KEY_FOLDER="Synox"
-local KEY_FILE=KEY_FOLDER.."/key.dat"
-
--- ================================================================
--- UNIVERSAL HTTP GET
--- ================================================================
-local function fetchText(url)
-    if typeof(game.HttpGet)=="function" then
-        local s,r=pcall(function() return game:HttpGet(url) end)
-        if s and type(r)=="string" and #r>0 then return r end
-    end
-    if typeof(httpget)=="function" then
-        local s,r=pcall(function() return httpget(url) end)
-        if s and type(r)=="string" and #r>0 then return r end
-    end
-    local req=(syn and syn.request) or (http and http.request) or http_request or request
-    if typeof(req)=="function" then
-        local s,r=pcall(function() return req({Url=url,Method="GET"}) end)
-        if s and r and r.Body and type(r.Body)=="string" and #r.Body>0 then return r.Body end
-    end
-    return nil
-end
-
--- ================================================================
--- KEY PERSISTENCE
-local function ensureFolder() pcall(function() if typeof(isfolder)=="function" and not isfolder(KEY_FOLDER) and typeof(makefolder)=="function" then makefolder(KEY_FOLDER) end end) end
-local function saveKey(k)
-    pcall(function()
-        if typeof(writefile)=="function" then
-            local ok=pcall(function() ensureFolder(); writefile(KEY_FILE,k) end)
-            if not ok then pcall(function() writefile("synox_key.dat",k) end) end
-        end
-    end)
-end
-local function loadSavedKey()
-    local s,r=pcall(function()
-        if typeof(isfile)=="function" and typeof(readfile)=="function" then
-            if isfile(KEY_FILE) then return readfile(KEY_FILE):match("^%s*(.-)%s*$") end
-            if isfile("synox_key.dat") then return readfile("synox_key.dat"):match("^%s*(.-)%s*$") end
-        end
-        return nil
-    end)
-    return s and r or nil
-end
-local function deleteSavedKey()
-    pcall(function()
-        if typeof(delfile)=="function" and typeof(isfile)=="function" then
-            if isfile(KEY_FILE) then delfile(KEY_FILE) end
-            if isfile("synox_key.dat") then delfile("synox_key.dat") end
-        end
-    end)
-end
-local function validateKey(ik)
-    if not ik or ik=="" then return false end
-    local resp=fetchText(CONFIG.KeyCheckURL)
-    if not resp then return false end
-    local LF=string.char(10)
-    local CR=string.char(13)
-    local pos=1
-    while pos<=#resp do
-        local nl=string.find(resp,LF,pos,true)
-        local seg
-        if nl then seg=string.sub(resp,pos,nl-1); pos=nl+1
-        else seg=string.sub(resp,pos); pos=#resp+1 end
-        local clean=string.gsub(seg,CR,"")
-        local trimmed=string.match(clean,"^%s*(.-)%s*$")
-        if trimmed and trimmed==ik then return true end
-    end
-    return false
-end
 
 -- ================================================================
 -- THEME
@@ -858,69 +786,7 @@ end
 -- ================================================================
 -- UI CONSTRUCTION
 -- ================================================================
-local function showKeySystem(onOK)
-    if not CONFIG.KeySystemEnabled then onOK(); return end
-    local saved=loadSavedKey()
-    if saved and saved~="" then
-        local valid=validateKey(saved)
-        if valid then Notify("SYNOX HUB","Key verified, loading hub...",2,"success"); onOK(); return
-        else deleteSavedKey(); Notify("SYNOX HUB","Key changed on server, enter new key.",3,"warning") end
-    end
 
-    local KO=C("Frame",{Size=UDim2.new(1,0,1,0),BackgroundColor3=Color3.fromRGB(5,5,8),BackgroundTransparency=0.08,BorderSizePixel=0,ZIndex=100,Parent=SG})
-    local KOut=C("Frame",{AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.new(0.5,0,0.5,0),Size=UDim2.new(0,440,0,400),BackgroundColor3=T.Outer,BackgroundTransparency=T.OuterT,BorderSizePixel=0,ZIndex=101,ClipsDescendants=true,Parent=KO})
-    Corner(KOut,T.CRL); Stroke(KOut,T.OuterStroke,1.5,T.OuterStrokeT)
-    local KP=C("Frame",{AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.new(0.5,0,0.5,0),Size=UDim2.new(1,-12,1,-12),BackgroundColor3=T.Bg,BackgroundTransparency=T.BgT,BorderSizePixel=0,ZIndex=102,ClipsDescendants=true,Parent=KOut})
-    Corner(KP,T.CR); Stroke(KP,T.PanelStroke,1,0.45)
-    local KTB=C("Frame",{Size=UDim2.new(1,0,0,T.TBH),BackgroundColor3=T.TitleBg,BackgroundTransparency=T.TitleBgT,BorderSizePixel=0,ZIndex=110,Parent=KP}); Corner(KTB,T.CR)
-    C("Frame",{Size=UDim2.new(1,0,0,12),Position=UDim2.new(0,0,1,-12),BackgroundColor3=T.TitleBg,BackgroundTransparency=T.TitleBgT,BorderSizePixel=0,ZIndex=110,Parent=KTB})
-    C("TextLabel",{Size=UDim2.new(0.8,0,1,0),Position=UDim2.new(0,18,0,0),BackgroundTransparency=1,Text="SYNOX HUB - KEY SYSTEM",TextColor3=T.TextPri,TextSize=17,Font=T.FT,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=111,Parent=KTB})
-    C("Frame",{Size=UDim2.new(0,80,0,2),Position=UDim2.new(0,18,1,-2),BackgroundColor3=T.Accent,BackgroundTransparency=0.3,BorderSizePixel=0,ZIndex=112,Parent=KTB})
-    local KGl=C("Frame",{Size=UDim2.new(1,0,0,3),Position=UDim2.new(0,0,0,T.TBH),BackgroundColor3=T.Accent,BackgroundTransparency=0.55,BorderSizePixel=0,ZIndex=105,Parent=KP}); Grad(KGl,T.AccentGlow,Color3.new(0,0,0),0)
-    local KC=C("Frame",{Size=UDim2.new(1,-40,1,-(T.TBH+24)),Position=UDim2.new(0,20,0,T.TBH+12),BackgroundTransparency=1,ZIndex=103,Parent=KP})
-    local lr=C("Frame",{AnchorPoint=Vector2.new(0.5,0),Size=UDim2.new(0,64,0,64),Position=UDim2.new(0.5,0,0,0),BackgroundColor3=T.Accent,BackgroundTransparency=0.75,BorderSizePixel=0,ZIndex=104,Parent=KC}); Corner(lr,UDim.new(1,0)); Stroke(lr,T.Accent,2,0.25)
-    C("TextLabel",{AnchorPoint=Vector2.new(0.5,0.5),Size=UDim2.new(1,0,1,0),Position=UDim2.new(0.5,0,0.5,0),BackgroundTransparency=1,Text="KEY",TextColor3=T.TextAcc,TextSize=18,Font=T.FT,ZIndex=105,Parent=lr})
-    C("TextLabel",{AnchorPoint=Vector2.new(0.5,0),Size=UDim2.new(1,0,0,24),Position=UDim2.new(0.5,0,0,72),BackgroundTransparency=1,Text="Key Verification Required",TextColor3=T.TextPri,TextSize=18,Font=T.FT,ZIndex=104,Parent=KC})
-    C("TextLabel",{AnchorPoint=Vector2.new(0.5,0),Size=UDim2.new(1,0,0,18),Position=UDim2.new(0.5,0,0,100),BackgroundTransparency=1,Text="Get your key from our Discord server",TextColor3=T.TextMut,TextSize=13,Font=T.FB,ZIndex=104,Parent=KC})
-    local KIC=C("Frame",{AnchorPoint=Vector2.new(0.5,0),Size=UDim2.new(1,0,0,42),Position=UDim2.new(0.5,0,0,128),BackgroundColor3=T.Card,BackgroundTransparency=T.CardT,BorderSizePixel=0,ZIndex=104,Parent=KC}); Corner(KIC,T.CRS)
-    local kSt=Stroke(KIC,T.CardStroke,1.5,0.35)
-    local KIn=C("TextBox",{Size=UDim2.new(1,-24,1,0),Position=UDim2.new(0,12,0,0),BackgroundTransparency=1,Text="",PlaceholderText="Enter your key here...",TextColor3=T.TextPri,PlaceholderColor3=T.TextMut,TextSize=15,Font=T.FB,ClearTextOnFocus=false,ZIndex=105,Parent=KIC})
-    local VBtn=C("TextButton",{AnchorPoint=Vector2.new(0.5,0),Size=UDim2.new(1,0,0,40),Position=UDim2.new(0.5,0,0,182),BackgroundColor3=T.BtnExec,BorderSizePixel=0,Text="✓  Verify Key",TextColor3=Color3.new(1,1,1),TextSize=15,Font=T.FT,AutoButtonColor=false,ZIndex=104,Parent=KC}); Corner(VBtn,T.CRS)
-    VBtn.MouseEnter:Connect(function() Tw(VBtn,0.2,{BackgroundColor3=T.BtnExecH}) end)
-    VBtn.MouseLeave:Connect(function() Tw(VBtn,0.2,{BackgroundColor3=T.BtnExec}) end)
-
-    local DBtn=C("TextButton",{AnchorPoint=Vector2.new(0.5,0),Size=UDim2.new(1,0,0,36),Position=UDim2.new(0.5,0,0,232),BackgroundColor3=T.Card,BackgroundTransparency=T.CardT,BorderSizePixel=0,Text="🔗  Get Key (Discord)",TextColor3=T.TextAcc,TextSize=13,Font=T.FH,AutoButtonColor=false,ZIndex=104,Parent=KC}); Corner(DBtn,T.CRS); Stroke(DBtn,T.Accent,1,0.5)
-    DBtn.MouseEnter:Connect(function() Tw(DBtn,0.2,{BackgroundColor3=T.CardHov,BackgroundTransparency=0.15}) end)
-    DBtn.MouseLeave:Connect(function() Tw(DBtn,0.2,{BackgroundColor3=T.Card,BackgroundTransparency=T.CardT}) end)
-
-    local KSt=C("TextLabel",{AnchorPoint=Vector2.new(0.5,0),Size=UDim2.new(1,0,0,16),Position=UDim2.new(0.5,0,0,276),BackgroundTransparency=1,Text="",TextColor3=T.TextMut,TextSize=12,Font=T.FB,ZIndex=104,Parent=KC})
-    DBtn.MouseButton1Click:Connect(function()
-        Ripple(DBtn,Vector2.new(DBtn.AbsolutePosition.X+DBtn.AbsoluteSize.X/2,DBtn.AbsolutePosition.Y+DBtn.AbsoluteSize.Y/2))
-        pcall(function() setclipboard(CONFIG.DiscordLink) end)
-        KSt.TextColor3=T.Accent
-        KSt.Text="Discord link copied to clipboard!"
-    end)
-    local function shake() Tw(KIC,0.06,{Position=UDim2.new(0.5,10,0,128)}); task.delay(0.06,function() Tw(KIC,0.06,{Position=UDim2.new(0.5,-10,0,128)}) end); task.delay(0.12,function() Tw(KIC,0.06,{Position=UDim2.new(0.5,6,0,128)}) end); task.delay(0.18,function() Tw(KIC,0.08,{Position=UDim2.new(0.5,0,0,128)}) end) end
-    local function tryV()
-        local ik=KIn.Text:match("^%s*(.-)%s*$"); if ik=="" then KSt.TextColor3=T.Red; KSt.Text="Please enter a key!"; shake(); return end
-        VBtn.Text="Verifying..."; Tw(VBtn,0.15,{BackgroundColor3=T.Yellow}); KSt.TextColor3=T.TextAcc; KSt.Text="Checking..."
-        task.delay(0.6,function()
-            if validateKey(ik) then
-                saveKey(ik)
-                KSt.TextColor3=T.Green; KSt.Text="Key verified! Loading..."; VBtn.Text="✓ Verified!"; Tw(VBtn,0.2,{BackgroundColor3=T.Green})
-                task.delay(1,function() Tw(KOut,0.45,{Size=UDim2.new(0,0,0,0),BackgroundTransparency=1}); Tw(KO,0.5,{BackgroundTransparency=1}); task.delay(0.55,function() KO:Destroy(); onOK() end) end)
-            else KSt.TextColor3=T.Red; KSt.Text="Invalid key!"; VBtn.Text="Verify Key"; Tw(VBtn,0.15,{BackgroundColor3=T.BtnExec}); Tw(kSt,0.15,{Color=T.Red}); shake(); task.delay(1,function() Tw(kSt,0.3,{Color=T.CardStroke}) end) end
-        end)
-    end
-    VBtn.MouseButton1Click:Connect(function()
-        Ripple(VBtn,Vector2.new(VBtn.AbsolutePosition.X+VBtn.AbsoluteSize.X/2,VBtn.AbsolutePosition.Y+VBtn.AbsoluteSize.Y/2))
-        tryV()
-    end)
-    KIn.FocusLost:Connect(function(ep) if ep then tryV() end end)
-    KOut.Size=UDim2.new(0,440,0,400)
-    KOut.BackgroundTransparency=T.OuterT
-    KO.BackgroundTransparency=0.08
-end
 
 -- ================================================================
 -- MAIN UI BUILD
@@ -1302,14 +1168,7 @@ local function buildUI()
     -- Key status card
     local keyCard=C("Frame",{Size=UDim2.new(1,0,0,48),BackgroundColor3=T.Card,BackgroundTransparency=T.CardT,BorderSizePixel=0,LayoutOrder=3,Parent=settP}); Corner(keyCard,T.CRS); Stroke(keyCard,T.CardStroke,1,0.55); Pad(keyCard,10,10,10,10)
     C("TextLabel",{Size=UDim2.new(0.5,0,0,16),BackgroundTransparency=1,Text="Key Status",TextColor3=T.TextPri,TextSize=13,Font=T.FH,TextXAlignment=Enum.TextXAlignment.Left,Parent=keyCard})
-    local keyBadge=C("TextLabel",{AnchorPoint=Vector2.new(1,0.5),Size=UDim2.new(0,80,0,22),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=T.Green,BackgroundTransparency=0.8,Text="Verified",TextColor3=T.Green,TextSize=11,Font=T.FH,BorderSizePixel=0,Parent=keyCard}); Corner(keyBadge,UDim.new(0,3))
-    -- Clear key button card
-    local clrCard=C("Frame",{Size=UDim2.new(1,0,0,48),BackgroundColor3=T.Card,BackgroundTransparency=T.CardT,BorderSizePixel=0,LayoutOrder=4,Parent=settP}); Corner(clrCard,T.CRS); Stroke(clrCard,T.CardStroke,1,0.55); Pad(clrCard,10,10,10,10)
-    C("TextLabel",{Size=UDim2.new(0.5,0,0,16),BackgroundTransparency=1,Text="Clear Saved Key",TextColor3=T.TextPri,TextSize=13,Font=T.FH,TextXAlignment=Enum.TextXAlignment.Left,Parent=clrCard})
-    local clrBtn=C("TextButton",{AnchorPoint=Vector2.new(1,0.5),Size=UDim2.new(0,80,0,26),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=T.BtnDng,BackgroundTransparency=0.3,Text="Clear",TextColor3=Color3.new(1,1,1),TextSize=11,Font=T.FH,BorderSizePixel=0,AutoButtonColor=false,Parent=clrCard}); Corner(clrBtn,T.CRS)
-    clrBtn.MouseButton1Click:Connect(function() deleteSavedKey(); keyBadge.Text="Cleared"; keyBadge.TextColor3=T.Yellow; keyBadge.BackgroundColor3=T.Yellow; Notify("Settings","Saved key cleared. Re-login next run.",3,"warning"); task.delay(2,function() keyBadge.Text="Verified"; keyBadge.TextColor3=T.Green; keyBadge.BackgroundColor3=T.Green end) end)
-    clrBtn.MouseEnter:Connect(function() Tw(clrBtn,0.15,{BackgroundTransparency=0}) end)
-    clrBtn.MouseLeave:Connect(function() Tw(clrBtn,0.15,{BackgroundTransparency=0.3}) end)
+    local keyBadge=C("TextLabel",{AnchorPoint=Vector2.new(1,0.5),Size=UDim2.new(0,100,0,22),Position=UDim2.new(1,0,0.5,0),BackgroundColor3=T.Green,BackgroundTransparency=0.8,Text="✓ Synox Hub",TextColor3=T.Green,TextSize=11,Font=T.FH,BorderSizePixel=0,Parent=keyCard}); Corner(keyBadge,UDim.new(0,3))
 
     SH(settP,"PROTECTION",5)
 
@@ -1332,7 +1191,6 @@ local function buildUI()
     hkChip.MouseLeave:Connect(function() if not hkListening then Tw(hkChip,0.15,{BackgroundColor3=T.ChipBg}) end end)
 
     SH(settP,"ACTIONS",7)
-    CBt(settP,"Clear Saved Key","Delete cached key",function() deleteSavedKey(); Notify("Key Cache","Saved key cleared!",3,"info") end,8,T.BtnPri)
     CBt(settP,"Reset Character","Kill your character",function() local c=LP.Character; if c then local h=c:FindFirstChildOfClass("Humanoid"); if h then h.Health=0 end end end,9,T.BtnPri)
     CBt(settP,"Destroy Hub","Remove SYNOX HUB completely",function()
         dead=true; for _,cn in ipairs(conns) do if cn and cn.Connected then cn:Disconnect() end end; conns={}
@@ -1402,9 +1260,4 @@ end
 -- ================================================================
 -- LAUNCH
 -- ================================================================
-if _G.SynoxKeyVerified or (getgenv and getgenv().SynoxKeyVerified) then
-    buildUI()
-else
-    local ok,err=pcall(function() showKeySystem(buildUI) end)
-    if not ok then warn("[SYNOX MM2 ERROR]: "..tostring(err)) end
-end
+buildUI()

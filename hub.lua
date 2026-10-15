@@ -113,6 +113,21 @@ local function loadSavedKey()
     return s and r or nil
 end
 
+local function deleteSavedKey()
+    pcall(function()
+        if typeof(delfile) == "function" and typeof(isfile) == "function" then
+            if isfile(KEY_FILE) then delfile(KEY_FILE) end
+            if isfile("synox_key.dat") then delfile("synox_key.dat") end
+        end
+    end)
+    _G.SynoxKeyVerified = nil
+    _G.SynoxKey = nil
+    if getgenv then
+        getgenv().SynoxKeyVerified = nil
+        getgenv().SynoxKey = nil
+    end
+end
+
 -- ══════════════════════════════════════════════════════════════
 -- HTTP FETCH (Universal)
 -- ══════════════════════════════════════════════════════════════
@@ -871,14 +886,32 @@ local function buildHub()
     local KeyStatusBadge = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 22), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Green, BackgroundTransparency = 0.8, Text = "✓ Verified", TextColor3 = T.Green, TextSize = 11, Font = T.FH, BorderSizePixel = 0, Parent = KeyInfoCard})
     Corner(KeyStatusBadge, UDim.new(0, 3))
 
+    -- Reset Key card
+    local ResetCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 163), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    Corner(ResetCard, T.CRS); Stroke(ResetCard, T.CardStroke, 1, 0.6); Pad(ResetCard, 10, 12, 10, 12)
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "Reset License Key", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = ResetCard})
+    local ResetBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Red, BackgroundTransparency = 0.3, Text = "Reset Key", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = ResetCard})
+    Corner(ResetBtn, T.CRS)
+
+    ResetBtn.MouseButton1Click:Connect(function()
+        deleteSavedKey()
+        KeyStatusBadge.Text = "Cleared"
+        KeyStatusBadge.TextColor3 = T.Yellow
+        KeyStatusBadge.BackgroundColor3 = T.Yellow
+        ResetBtn.Text = "✓ Cleared"
+        NWarning("License", "Saved key deleted! You will be prompted on next launch.")
+    end)
+    ResetBtn.MouseEnter:Connect(function() Tw(ResetBtn, 0.2, {BackgroundTransparency = 0}) end)
+    ResetBtn.MouseLeave:Connect(function() Tw(ResetBtn, 0.2, {BackgroundTransparency = 0.3}) end)
+
     -- Version card
-    local VerCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 163), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    local VerCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 220), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(VerCard, T.CRS); Stroke(VerCard, T.CardStroke, 1, 0.6); Pad(VerCard, 10, 12, 10, 12)
     C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Version", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = VerCard})
     C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 80, 0, 16), Position = UDim2.new(1, 0, 0.5, 0), BackgroundTransparency = 1, Text = "v" .. CONFIG.Version, TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Right, Parent = VerCard})
 
     -- Discord card
-    local DiscCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 220), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    local DiscCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 277), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(DiscCard, T.CRS); Stroke(DiscCard, T.CardStroke, 1, 0.6); Pad(DiscCard, 10, 12, 10, 12)
     C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Official Discord", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DiscCard})
     local CopyDiscBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "Copy Link", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = DiscCard})
