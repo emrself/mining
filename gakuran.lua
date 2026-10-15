@@ -168,6 +168,7 @@ local KeyFrame = C("Frame", {
     BackgroundColor3 = T.Bg,
     BackgroundTransparency = T.BgTrans,
     BorderSizePixel = 0,
+    Visible = not (_G.SynoxKeyVerified or (getgenv and getgenv().SynoxKeyVerified)),
     Parent = SG,
 })
 Corner(KeyFrame, T.CornerLg)
@@ -1963,3 +1964,17 @@ KeyBtn.MouseButton1Click:Connect(function()
         Tw(KeyInputBox, 0.15, {Position = UDim2.new(0, 0, 0, 126)})
     end
 end)
+
+-- Auto-bypass if already verified in Synox Hub
+if _G.SynoxKeyVerified or (getgenv and getgenv().SynoxKeyVerified) then
+    task.spawn(function()
+        KeyFrame.Visible = false
+        OuterFrame.Visible = true
+        OuterFrame.Size = UDim2.new(0, 0, 0, 0)
+        Tw(OuterFrame, 0.5, {Size = UDim2.new(0, 542, 0, 432)})
+        keyValidated = true
+        validatedKeyText = _G.SynoxKey or (getgenv and getgenv().SynoxKey) or "HUB-VERIFIED"
+        startEngine()
+    end)
+end
+

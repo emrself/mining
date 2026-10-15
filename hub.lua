@@ -14,38 +14,38 @@ local CONFIG = {
     KeySystemEnabled = true,
     KeyCheckURL = "https://raw.githubusercontent.com/emrself/mining/main/keys.txt",
     DiscordLink = "https://discord.gg/hHQ97ATpR9",
-    KeyGetURL = "https://discord.gg/hHQ97ATpR9",
     DefaultHotkey = Enum.KeyCode.RightControl,
     AutoDetectEnabled = true,
     Version = "4.0.0",
 }
 
 -- ══════════════════════════════════════════════════════════════
--- GAME REGISTRY (PlaceId → Script mapping)
+-- GAME REGISTRY (PlaceId & UniverseId mapping)
 -- ══════════════════════════════════════════════════════════════
 local GAME_REGISTRY = {
-    -- Gakuran (Rhythm Game) — multiple PlaceIds possible
+    -- Gakuran (Rhythm Game)
     {
         PlaceIds = {128736949265057},
+        UniverseId = 9199655655,
         Name = "Gakuran Auto-Player",
-        Description = "Rhythm oyunu tam otomasyon scripti.\n\nÖzellikler:\n• Auto-Play (Guitar 2 Lane)\n• Auto-Play (Drums 4 Lane)\n• Accuracy Kontrol (Perfect/Good/Okay/Bad)\n• Mobile Uyumluluk\n• Keybind Ayarlama\n• Lane State Machine\n• Hit Zone Ayarlama",
+        Description = "Complete rhythm game automation suite.\n\nFeatures:\n• Auto-Play (Guitar 2 Lane)\n• Auto-Play (Drums 4 Lane)\n• Accuracy Control (Perfect / Good / Okay / Bad)\n• Mobile Touch Compatibility\n• Keybind Customization\n• Lane State Machine\n• Dynamic Hit Zone Calibration",
         ShortDesc = "Auto-Play, Accuracy Control, Mobile",
         Tag = "Updated",
         Icon = "🎸",
-        ImageId = "rbxthumb://type=GameIcon&id=128736949265057&w=150&h=150",
+        ImageId = "rbxthumb://type=GameIcon&id=9199655655&w=150&h=150",
         URL = "https://raw.githubusercontent.com/emrself/mining/main/gakuran.lua",
     },
     -- Murder Mystery 2
     {
         PlaceIds = {142823291},
+        UniverseId = 66654135,
         Name = "Synox MM2",
-        Description = "Murder Mystery 2 full edition script.\n\nÖzellikler:\n• ESP (Rol Tespiti + Oyuncu)\n• Gun Aimbot (Sheriff)\n• Coin Farm (Otomatik)\n• Murderer/Sheriff/Hero Tespiti\n• Teleport (Gun/Coin/Player)\n• Auto Fling\n• Anti-Trap / Anti-Fling\n• Speed / Fly / Noclip\n• Fullbright\n• Anti-AFK\n• Murderer Alert",
+        Description = "Murder Mystery 2 full feature edition.\n\nFeatures:\n• Role ESP (Murderer / Sheriff / Innocents)\n• Gun Aimbot & Target Prediction\n• Automatic Coin Farm\n• Weapon Teleportation (Grab Dropped Gun)\n• Auto Fling & Anti-Fling\n• Movement Suite (Speed, Fly, Noclip)\n• Visuals (Fullbright, X-Ray)\n• Murderer Radar & Threat Alerts",
         ShortDesc = "ESP, Aimbot, Coin Farm, Role Detect",
         Tag = "Full Edition",
         Icon = "🔪",
-        ImageId = "rbxthumb://type=GameIcon&id=142823291&w=150&h=150",
+        ImageId = "rbxthumb://type=GameIcon&id=66654135&w=150&h=150",
         URL = "https://raw.githubusercontent.com/emrself/mining/main/mm2.lua",
-        -- Callback ile de çalıştırılabilir (inline script varsa)
     },
 }
 
@@ -180,38 +180,38 @@ local function NConfirm(t, m, cb)
 end
 
 -- ══════════════════════════════════════════════════════════════
--- THEME (Synox Glassmorphism)
+-- THEME (Glassmorphism Dark)
 -- ══════════════════════════════════════════════════════════════
 local T = {
-    Bg = Color3.fromRGB(25, 25, 30), BgT = 0.15,
-    Outer = Color3.fromRGB(35, 35, 42), OuterT = 0.45,
-    OuterStroke = Color3.fromRGB(80, 80, 95), OuterStrokeT = 0.3,
-    Panel = Color3.fromRGB(30, 30, 38), PanelT = 0.25,
-    PanelStroke = Color3.fromRGB(60, 60, 75),
-    TitleBg = Color3.fromRGB(20, 20, 26), TitleBgT = 0.1,
+    Bg = Color3.fromRGB(22, 22, 28), BgT = 0.15,
+    Outer = Color3.fromRGB(32, 32, 40), OuterT = 0.45,
+    OuterStroke = Color3.fromRGB(75, 75, 92), OuterStrokeT = 0.3,
+    Panel = Color3.fromRGB(28, 28, 36), PanelT = 0.25,
+    PanelStroke = Color3.fromRGB(55, 55, 70),
+    TitleBg = Color3.fromRGB(18, 18, 24), TitleBgT = 0.1,
     Accent = Color3.fromRGB(0, 180, 216),
     AccentGlow = Color3.fromRGB(0, 200, 240),
-    TextPri = Color3.fromRGB(220, 220, 230),
-    TextSec = Color3.fromRGB(150, 150, 165),
-    TextMut = Color3.fromRGB(100, 100, 115),
+    TextPri = Color3.fromRGB(225, 225, 235),
+    TextSec = Color3.fromRGB(155, 155, 170),
+    TextMut = Color3.fromRGB(105, 105, 120),
     TextAcc = Color3.fromRGB(0, 200, 230),
-    TabAct = Color3.fromRGB(40, 40, 50), TabActT = 0.2,
-    TabIn = Color3.fromRGB(30, 30, 38), TabInT = 0.5,
-    TabStroke = Color3.fromRGB(55, 55, 68),
-    Card = Color3.fromRGB(32, 32, 40), CardT = 0.3,
-    CardHov = Color3.fromRGB(38, 38, 48),
-    CardStroke = Color3.fromRGB(55, 55, 68),
-    BtnExec = Color3.fromRGB(45, 180, 50),
-    BtnExecH = Color3.fromRGB(55, 210, 60),
+    TabAct = Color3.fromRGB(38, 38, 48), TabActT = 0.2,
+    TabIn = Color3.fromRGB(28, 28, 36), TabInT = 0.5,
+    TabStroke = Color3.fromRGB(50, 50, 65),
+    Card = Color3.fromRGB(30, 30, 38), CardT = 0.3,
+    CardHov = Color3.fromRGB(36, 36, 46),
+    CardStroke = Color3.fromRGB(52, 52, 66),
+    BtnExec = Color3.fromRGB(42, 175, 55),
+    BtnExecH = Color3.fromRGB(50, 200, 65),
     BtnPri = Color3.fromRGB(0, 160, 195),
     BtnPriH = Color3.fromRGB(0, 185, 220),
     BtnDng = Color3.fromRGB(200, 50, 50),
     Green = Color3.fromRGB(50, 205, 50),
     Yellow = Color3.fromRGB(255, 200, 50),
-    Red = Color3.fromRGB(200, 50, 50),
-    Scroll = Color3.fromRGB(60, 60, 75),
-    ThumbBg = Color3.fromRGB(230, 230, 235),
-    InputBg = Color3.fromRGB(22, 22, 28),
+    Red = Color3.fromRGB(215, 50, 50),
+    Scroll = Color3.fromRGB(55, 55, 70),
+    ThumbBg = Color3.fromRGB(24, 24, 32), -- Dark sleek thumbnail background
+    InputBg = Color3.fromRGB(18, 18, 24),
     CR = UDim.new(0, 8), CRS = UDim.new(0, 5), CRL = UDim.new(0, 12),
     FT = Enum.Font.GothamBold, FH = Enum.Font.GothamSemibold, FB = Enum.Font.Gotham,
     TBH = 36, TABH = 38, WW = 550, WH = 460,
@@ -283,9 +283,9 @@ local function executeGameScript(gameData)
         end
     end)
     if success then
-        NInfo("SYNOX HUB", gameData.Name .. " başarıyla yüklendi!")
+        NInfo("SYNOX HUB", gameData.Name .. " loaded successfully!")
     else
-        NError("Hata", gameData.Name .. " yüklenemedi:\n" .. tostring(err))
+        NError("Execution Error", gameData.Name .. " failed to load:\n" .. tostring(err))
     end
     return success
 end
@@ -319,10 +319,10 @@ if not SG.Parent then SG.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 local function showSelectionDialog(matchedGames, onSelect, onSkip)
     local Overlay = C("Frame", {Name = "SelectOverlay", Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(5, 5, 8), BackgroundTransparency = 0.15, BorderSizePixel = 0, ZIndex = 200, Parent = SG})
 
-    local dialogH = 180 + (#matchedGames * 60)
-    if dialogH > 500 then dialogH = 500 end
+    local dialogH = 190 + (#matchedGames * 62)
+    if dialogH > 520 then dialogH = 520 end
 
-    local DOuter = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 420, 0, dialogH), BackgroundColor3 = T.Outer, BackgroundTransparency = T.OuterT, BorderSizePixel = 0, ZIndex = 201, ClipsDescendants = true, Parent = Overlay})
+    local DOuter = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 440, 0, dialogH), BackgroundColor3 = T.Outer, BackgroundTransparency = T.OuterT, BorderSizePixel = 0, ZIndex = 201, ClipsDescendants = true, Parent = Overlay})
     Corner(DOuter, T.CRL)
     Stroke(DOuter, T.OuterStroke, 1.5, T.OuterStrokeT)
 
@@ -334,8 +334,8 @@ local function showSelectionDialog(matchedGames, onSelect, onSkip)
     local DTB = C("Frame", {Size = UDim2.new(1, 0, 0, T.TBH), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 210, Parent = DPanel})
     Corner(DTB, T.CR)
     C("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 210, Parent = DTB})
-    C("TextLabel", {Size = UDim2.new(0.8, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB — Oyun Tespit Edildi!", TextColor3 = T.TextPri, TextSize = 15, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 211, Parent = DTB})
-    C("Frame", {Size = UDim2.new(0, 80, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 212, Parent = DTB})
+    C("TextLabel", {Size = UDim2.new(0.8, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB — Game Detected!", TextColor3 = T.TextPri, TextSize = 15, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 211, Parent = DTB})
+    C("Frame", {Size = UDim2.new(0, 75, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 212, Parent = DTB})
 
     -- Glow line
     local DGlow = C("Frame", {Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 0, T.TBH), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.6, BorderSizePixel = 0, ZIndex = 205, Parent = DPanel})
@@ -345,33 +345,33 @@ local function showSelectionDialog(matchedGames, onSelect, onSkip)
     local DContent = C("Frame", {Size = UDim2.new(1, -30, 1, -(T.TBH + 20)), Position = UDim2.new(0, 15, 0, T.TBH + 10), BackgroundTransparency = 1, ZIndex = 203, Parent = DPanel})
 
     -- Icon
-    local DetectIcon = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0, 50, 0, 50), Position = UDim2.new(0.5, 0, 0, 0), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, ZIndex = 204, Parent = DContent})
+    local DetectIcon = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0, 52, 0, 52), Position = UDim2.new(0.5, 0, 0, 0), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, ZIndex = 204, Parent = DContent})
     Corner(DetectIcon, UDim.new(1, 0))
     Stroke(DetectIcon, T.Accent, 2, 0.3)
-    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = "🎮", TextSize = 26, ZIndex = 205, Parent = DetectIcon})
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = "🎮", TextSize = 28, ZIndex = 205, Parent = DetectIcon})
 
     -- Title
-    local countText = #matchedGames == 1 and "Bu oyun için 1 script bulundu:" or ("Bu oyun için " .. tostring(#matchedGames) .. " script bulundu:")
-    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0.5, 0, 0, 56), BackgroundTransparency = 1, Text = countText, TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, ZIndex = 204, Parent = DContent})
+    local countText = #matchedGames == 1 and "1 compatible script detected for this game:" or (#matchedGames .. " compatible scripts detected for this game:")
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0.5, 0, 0, 58), BackgroundTransparency = 1, Text = countText, TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, ZIndex = 204, Parent = DContent})
 
     -- Script selection buttons
-    local btnY = 82
+    local btnY = 84
     for i, gameData in ipairs(matchedGames) do
-        local scriptBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0.5, 0, 0, btnY), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, Text = "", BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 205, Parent = DContent})
+        local scriptBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 52), Position = UDim2.new(0.5, 0, 0, btnY), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, Text = "", BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 205, Parent = DContent})
         Corner(scriptBtn, T.CRS)
         Stroke(scriptBtn, T.CardStroke, 1, 0.5)
 
         -- Icon
-        C("TextLabel", {Size = UDim2.new(0, 35, 0, 35), Position = UDim2.new(0, 8, 0.5, -17), BackgroundTransparency = 1, Text = gameData.Icon or "📜", TextSize = 20, ZIndex = 206, Parent = scriptBtn})
+        C("TextLabel", {Size = UDim2.new(0, 38, 0, 38), Position = UDim2.new(0, 8, 0.5, -19), BackgroundTransparency = 1, Text = gameData.Icon or "📜", TextSize = 22, ZIndex = 206, Parent = scriptBtn})
 
         -- Name
-        C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 18), Position = UDim2.new(0, 48, 0, 6), BackgroundTransparency = 1, Text = gameData.Name, TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 206, Parent = scriptBtn})
+        C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 18), Position = UDim2.new(0, 50, 0, 8), BackgroundTransparency = 1, Text = gameData.Name, TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 206, Parent = scriptBtn})
 
         -- Short desc
-        C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 14), Position = UDim2.new(0, 48, 0, 26), BackgroundTransparency = 1, Text = gameData.ShortDesc or "", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 206, Parent = scriptBtn})
+        C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 14), Position = UDim2.new(0, 50, 0, 28), BackgroundTransparency = 1, Text = gameData.ShortDesc or "", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 206, Parent = scriptBtn})
 
         -- Execute indicator
-        local execInd = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 70, 0, 26), Position = UDim2.new(1, -8, 0.5, 0), BackgroundColor3 = T.BtnExec, BackgroundTransparency = 0.15, Text = "Çalıştır", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, ZIndex = 206, Parent = scriptBtn})
+        local execInd = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 75, 0, 28), Position = UDim2.new(1, -8, 0.5, 0), BackgroundColor3 = T.BtnExec, BackgroundTransparency = 0.15, Text = "Execute", TextColor3 = Color3.new(1, 1, 1), TextSize = 12, Font = T.FH, ZIndex = 206, Parent = scriptBtn})
         Corner(execInd, T.CRS)
 
         -- Hover
@@ -388,7 +388,6 @@ local function showSelectionDialog(matchedGames, onSelect, onSkip)
 
         scriptBtn.MouseButton1Click:Connect(function()
             Ripple(scriptBtn, Vector2.new(scriptBtn.AbsolutePosition.X + scriptBtn.AbsoluteSize.X / 2, scriptBtn.AbsolutePosition.Y + scriptBtn.AbsoluteSize.Y / 2))
-            -- Close dialog
             Tw(DOuter, 0.35, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
             Tw(Overlay, 0.4, {BackgroundTransparency = 1})
             task.delay(0.45, function()
@@ -397,11 +396,11 @@ local function showSelectionDialog(matchedGames, onSelect, onSkip)
             end)
         end)
 
-        btnY = btnY + 58
+        btnY = btnY + 60
     end
 
-    -- Skip button (Hub'ı Aç)
-    local skipBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 34), Position = UDim2.new(0.5, 0, 0, btnY + 6), BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.3, Text = "⏭  Hub'ı Aç (Manuel Seçim)", TextColor3 = T.TextSec, TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 205, Parent = DContent})
+    -- Skip button (Open Hub)
+    local skipBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 36), Position = UDim2.new(0.5, 0, 0, btnY + 6), BackgroundColor3 = Color3.fromRGB(42, 42, 54), BackgroundTransparency = 0.3, Text = "⏭  Open Hub (Manual Selection)", TextColor3 = T.TextSec, TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 205, Parent = DContent})
     Corner(skipBtn, T.CRS)
     Stroke(skipBtn, T.CardStroke, 1, 0.6)
 
@@ -428,21 +427,33 @@ local function showSelectionDialog(matchedGames, onSelect, onSkip)
 
     task.delay(0.05, function()
         Tw(Overlay, 0.3, {BackgroundTransparency = 0.15})
-        Tw(DOuter, 0.5, {Size = UDim2.new(0, 420, 0, dialogH), BackgroundTransparency = T.OuterT}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        Tw(DOuter, 0.5, {Size = UDim2.new(0, 440, 0, dialogH), BackgroundTransparency = T.OuterT}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     end)
 end
 
 -- ══════════════════════════════════════════════════════════════
 -- ████████████████████████████████████████████████████████████
--- █                    KEY SYSTEM SCREEN                      █
--- ████████████████████████████████████████████████████████████
+-- █             REDESIGNED KEY SYSTEM SCREEN                 █
+-- ██████████████████══════════════════════════════════════════
 -- ══════════════════════════════════════════════════════════════
 
 local keyVerified = false
 
+local function setVerifiedGlobals(key)
+    keyVerified = true
+    if _G then
+        _G.SynoxKeyVerified = true
+        _G.SynoxKey = key
+    end
+    if getgenv then
+        getgenv().SynoxKeyVerified = true
+        getgenv().SynoxKey = key
+    end
+end
+
 local function showKeySystem(onSuccess)
     if not CONFIG.KeySystemEnabled then
-        keyVerified = true
+        setVerifiedGlobals("BYPASS")
         onSuccess()
         return
     end
@@ -452,16 +463,16 @@ local function showKeySystem(onSuccess)
     if savedKey and savedKey ~= "" then
         local valid = validateKey(savedKey)
         if valid then
-            keyVerified = true
+            setVerifiedGlobals(savedKey)
             onSuccess()
             return
         end
     end
 
     -- Dark overlay
-    local KeyOverlay = C("Frame", {Name = "KeyOverlay", Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(5, 5, 8), BackgroundTransparency = 0.1, BorderSizePixel = 0, ZIndex = 100, Parent = SG})
+    local KeyOverlay = C("Frame", {Name = "KeyOverlay", Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(5, 5, 8), BackgroundTransparency = 0.12, BorderSizePixel = 0, ZIndex = 100, Parent = SG})
 
-    local KeyOuter = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 420, 0, 370), BackgroundColor3 = T.Outer, BackgroundTransparency = T.OuterT, BorderSizePixel = 0, ZIndex = 101, ClipsDescendants = true, Parent = KeyOverlay})
+    local KeyOuter = C("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 430, 0, 360), BackgroundColor3 = T.Outer, BackgroundTransparency = T.OuterT, BorderSizePixel = 0, ZIndex = 101, ClipsDescendants = true, Parent = KeyOverlay})
     Corner(KeyOuter, T.CRL)
     Stroke(KeyOuter, T.OuterStroke, 1.5, T.OuterStrokeT)
 
@@ -469,29 +480,42 @@ local function showKeySystem(onSuccess)
     Corner(KeyPanel, T.CR)
     Stroke(KeyPanel, T.PanelStroke, 1, 0.5)
 
-    -- Title bar
+    -- Title bar (matching Hub title bar)
     local KeyTB = C("Frame", {Size = UDim2.new(1, 0, 0, T.TBH), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 110, Parent = KeyPanel})
     Corner(KeyTB, T.CR)
     C("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 110, Parent = KeyTB})
     C("TextLabel", {Size = UDim2.new(0.8, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 111, Parent = KeyTB})
     C("Frame", {Size = UDim2.new(0, 60, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 112, Parent = KeyTB})
 
+    -- Close button
+    local KeyCloseBtn = C("TextButton", {Size = UDim2.new(0, 28, 0, 28), Position = UDim2.new(1, -34, 0.5, -14), BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5, Text = "✕", TextColor3 = T.TextSec, TextSize = 13, Font = T.FB, BorderSizePixel = 0, ZIndex = 112, AutoButtonColor = false, Parent = KeyTB})
+    Corner(KeyCloseBtn, T.CRS)
+    KeyCloseBtn.MouseEnter:Connect(function() Tw(KeyCloseBtn, 0.2, {BackgroundColor3 = T.BtnDng, BackgroundTransparency = 0.2, TextColor3 = Color3.new(1, 1, 1)}) end)
+    KeyCloseBtn.MouseLeave:Connect(function() Tw(KeyCloseBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5, TextColor3 = T.TextSec}) end)
+    KeyCloseBtn.MouseButton1Click:Connect(function()
+        Tw(KeyOuter, 0.35, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
+        Tw(KeyOverlay, 0.4, {BackgroundTransparency = 1})
+        task.delay(0.45, function() SG:Destroy() end)
+    end)
+
+    -- Glow line
     local KeyGlow = C("Frame", {Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 0, T.TBH), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.6, BorderSizePixel = 0, ZIndex = 105, Parent = KeyPanel})
     Grad(KeyGlow, T.AccentGlow, Color3.new(0, 0, 0), 0)
 
-    local KeyContent = C("Frame", {Size = UDim2.new(1, -30, 1, -(T.TBH + 20)), Position = UDim2.new(0, 15, 0, T.TBH + 10), BackgroundTransparency = 1, ZIndex = 103, Parent = KeyPanel})
+    -- Content
+    local KeyContent = C("Frame", {Size = UDim2.new(1, -30, 1, -(T.TBH + 16)), Position = UDim2.new(0, 15, 0, T.TBH + 8), BackgroundTransparency = 1, ZIndex = 103, Parent = KeyPanel})
 
-    -- Lock icon
-    local LockRing = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0, 58, 0, 58), Position = UDim2.new(0.5, 0, 0, 0), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, ZIndex = 104, Parent = KeyContent})
+    -- Lock icon circle
+    local LockRing = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0, 52, 0, 52), Position = UDim2.new(0.5, 0, 0, 0), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.75, BorderSizePixel = 0, ZIndex = 104, Parent = KeyContent})
     Corner(LockRing, UDim.new(1, 0))
-    Stroke(LockRing, T.Accent, 2, 0.3)
-    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = "🔒", TextSize = 28, ZIndex = 105, Parent = LockRing})
+    Stroke(LockRing, T.Accent, 1.5, 0.3)
+    local LockIcon = C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = "🔒", TextSize = 24, ZIndex = 105, Parent = LockRing})
 
-    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 20), Position = UDim2.new(0.5, 0, 0, 64), BackgroundTransparency = 1, Text = "Key Doğrulama", TextColor3 = T.TextPri, TextSize = 15, Font = T.FT, ZIndex = 104, Parent = KeyContent})
-    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0.9, 0, 0, 16), Position = UDim2.new(0.5, 0, 0, 86), BackgroundTransparency = 1, Text = "SYNOX HUB'a erişmek için key girin", TextColor3 = T.TextMut, TextSize = 11, Font = T.FB, ZIndex = 104, Parent = KeyContent})
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0.5, 0, 0, 56), BackgroundTransparency = 1, Text = "KEY VERIFICATION", TextColor3 = T.TextPri, TextSize = 14, Font = T.FT, ZIndex = 104, Parent = KeyContent})
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(0.95, 0, 0, 15), Position = UDim2.new(0.5, 0, 0, 76), BackgroundTransparency = 1, Text = "Enter your license key to unlock SYNOX HUB", TextColor3 = T.TextMut, TextSize = 11, Font = T.FB, ZIndex = 104, Parent = KeyContent})
 
-    -- Key input
-    local KeyInputCard = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 42), Position = UDim2.new(0.5, 0, 0, 110), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, ZIndex = 104, Parent = KeyContent})
+    -- Key input field
+    local KeyInputCard = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 40), Position = UDim2.new(0.5, 0, 0, 100), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, ZIndex = 104, Parent = KeyContent})
     Corner(KeyInputCard, T.CRS)
     local keyInputStroke = Stroke(KeyInputCard, T.CardStroke, 1, 0.5)
 
@@ -501,59 +525,45 @@ local function showKeySystem(onSuccess)
     KeyInput.Focused:Connect(function() Tw(keyInputStroke, 0.2, {Color = T.Accent, Transparency = 0.2}) end)
     KeyInput.FocusLost:Connect(function() Tw(keyInputStroke, 0.2, {Color = T.CardStroke, Transparency = 0.5}) end)
 
-    local KeyStatus = C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 16), Position = UDim2.new(0.5, 0, 0, 155), BackgroundTransparency = 1, Text = "", TextColor3 = T.Red, TextSize = 11, Font = T.FH, ZIndex = 104, Parent = KeyContent})
+    local KeyStatus = C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 16), Position = UDim2.new(0.5, 0, 0, 144), BackgroundTransparency = 1, Text = "", TextColor3 = T.Red, TextSize = 11, Font = T.FH, ZIndex = 104, Parent = KeyContent})
 
     -- Verify button
-    local VerifyBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 38), Position = UDim2.new(0.5, 0, 0, 175), BackgroundColor3 = T.BtnExec, BackgroundTransparency = 0, Text = "✓  Doğrula", TextColor3 = Color3.new(1, 1, 1), TextSize = 14, Font = T.FT, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = KeyContent})
+    local VerifyBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 36), Position = UDim2.new(0.5, 0, 0, 164), BackgroundColor3 = T.BtnExec, BackgroundTransparency = 0, Text = "✓  Verify Key", TextColor3 = Color3.new(1, 1, 1), TextSize = 13, Font = T.FT, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = KeyContent})
     Corner(VerifyBtn, T.CRS)
     VerifyBtn.MouseEnter:Connect(function() Tw(VerifyBtn, 0.2, {BackgroundColor3 = T.BtnExecH}) end)
     VerifyBtn.MouseLeave:Connect(function() Tw(VerifyBtn, 0.2, {BackgroundColor3 = T.BtnExec}) end)
 
-    -- Bottom buttons
-    local BtnRow = C("Frame", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 36), Position = UDim2.new(0.5, 0, 0, 221), BackgroundTransparency = 1, ZIndex = 104, Parent = KeyContent})
-
-    local GetKeyBtn = C("TextButton", {Size = UDim2.new(0.48, 0, 1, 0), Position = UDim2.new(0, 0, 0, 0), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, Text = "🔗  Key Al", TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = BtnRow})
-    Corner(GetKeyBtn, T.CRS)
-    Stroke(GetKeyBtn, T.Accent, 1, 0.5)
-
-    GetKeyBtn.MouseEnter:Connect(function() Tw(GetKeyBtn, 0.2, {BackgroundColor3 = T.CardHov, BackgroundTransparency = 0.15}) end)
-    GetKeyBtn.MouseLeave:Connect(function() Tw(GetKeyBtn, 0.2, {BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT}) end)
-    GetKeyBtn.MouseButton1Click:Connect(function()
-        Ripple(GetKeyBtn, Vector2.new(GetKeyBtn.AbsolutePosition.X + GetKeyBtn.AbsoluteSize.X / 2, GetKeyBtn.AbsolutePosition.Y + GetKeyBtn.AbsoluteSize.Y / 2))
-        if setclipboard then setclipboard(CONFIG.KeyGetURL) end
-        KeyStatus.TextColor3 = T.Green
-        KeyStatus.Text = "✓ Key linki kopyalandı!"
-        GetKeyBtn.Text = "✓  Kopyalandı!"
-        Tw(GetKeyBtn, 0.15, {BackgroundColor3 = T.Green, BackgroundTransparency = 0.3})
-        task.delay(2, function() KeyStatus.Text = ""; GetKeyBtn.Text = "🔗  Key Al"; Tw(GetKeyBtn, 0.25, {BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT}) end)
-    end)
-
-    local DiscBtn = C("TextButton", {Size = UDim2.new(0.48, 0, 1, 0), Position = UDim2.new(0.52, 0, 0, 0), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "🎮  Discord", TextColor3 = Color3.new(1, 1, 1), TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = BtnRow})
+    -- Discord Button (Only Discord - exclusive gateway for keys)
+    local DiscBtn = C("TextButton", {AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.new(1, 0, 0, 36), Position = UDim2.new(0.5, 0, 0, 206), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "🎮  Join Discord to Get Key", TextColor3 = Color3.new(1, 1, 1), TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, ZIndex = 105, Parent = KeyContent})
     Corner(DiscBtn, T.CRS)
-    Stroke(DiscBtn, Color3.fromRGB(110, 125, 255), 1, 0.5)
+    local discStroke = Stroke(DiscBtn, Color3.fromRGB(110, 125, 255), 1, 0.5)
 
-    DiscBtn.MouseEnter:Connect(function() Tw(DiscBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(100, 115, 255), BackgroundTransparency = 0}) end)
+    DiscBtn.MouseEnter:Connect(function() Tw(DiscBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(105, 120, 255), BackgroundTransparency = 0}) end)
     DiscBtn.MouseLeave:Connect(function() Tw(DiscBtn, 0.2, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15}) end)
     DiscBtn.MouseButton1Click:Connect(function()
         Ripple(DiscBtn, Vector2.new(DiscBtn.AbsolutePosition.X + DiscBtn.AbsoluteSize.X / 2, DiscBtn.AbsolutePosition.Y + DiscBtn.AbsoluteSize.Y / 2))
         if setclipboard then setclipboard(CONFIG.DiscordLink) end
         KeyStatus.TextColor3 = T.Green
-        KeyStatus.Text = "✓ Discord linki kopyalandı!"
-        DiscBtn.Text = "✓  Kopyalandı!"
+        KeyStatus.Text = "✓ Discord invite copied to clipboard! Join to claim your key."
+        DiscBtn.Text = "✓  Discord Link Copied!"
         Tw(DiscBtn, 0.15, {BackgroundColor3 = T.Green, BackgroundTransparency = 0.1})
-        task.delay(2, function() KeyStatus.Text = ""; DiscBtn.Text = "🎮  Discord"; Tw(DiscBtn, 0.25, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15}) end)
+        task.delay(2.5, function()
+            KeyStatus.Text = ""
+            DiscBtn.Text = "🎮  Join Discord to Get Key"
+            Tw(DiscBtn, 0.25, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15})
+        end)
     end)
 
-    -- Footer
-    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 1), Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0.5, 0, 1, -2), BackgroundTransparency = 1, Text = "© IEM7R | dc:siberguvenlik | SYNOX HUB v" .. CONFIG.Version, TextColor3 = T.TextMut, TextSize = 9, Font = T.FB, ZIndex = 104, Parent = KeyContent})
+    -- Footer notice
+    C("TextLabel", {AnchorPoint = Vector2.new(0.5, 1), Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0.5, 0, 1, -2), BackgroundTransparency = 1, Text = "Keys are generated exclusively via our Discord Bot • SYNOX HUB v" .. CONFIG.Version, TextColor3 = T.TextMut, TextSize = 9, Font = T.FB, ZIndex = 104, Parent = KeyContent})
 
-    -- Shake animation helper
+    -- Shake animation
     local function shakeInput()
-        Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, 10, 0, 110)})
-        task.delay(0.06, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, -10, 0, 110)}) end)
-        task.delay(0.12, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, 6, 0, 110)}) end)
-        task.delay(0.18, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, -6, 0, 110)}) end)
-        task.delay(0.24, function() Tw(KeyInputCard, 0.08, {Position = UDim2.new(0.5, 0, 0, 110)}) end)
+        Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, 10, 0, 100)})
+        task.delay(0.06, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, -10, 0, 100)}) end)
+        task.delay(0.12, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, 6, 0, 100)}) end)
+        task.delay(0.18, function() Tw(KeyInputCard, 0.06, {Position = UDim2.new(0.5, -6, 0, 100)}) end)
+        task.delay(0.24, function() Tw(KeyInputCard, 0.08, {Position = UDim2.new(0.5, 0, 0, 100)}) end)
     end
 
     -- Verify logic
@@ -561,33 +571,31 @@ local function showKeySystem(onSuccess)
         local inputKey = KeyInput.Text:match("^%s*(.-)%s*$")
         if inputKey == "" then
             KeyStatus.TextColor3 = T.Red
-            KeyStatus.Text = "✕ Lütfen bir key girin!"
+            KeyStatus.Text = "✕ Please enter a key!"
             shakeInput()
             return
         end
 
-        VerifyBtn.Text = "⏳  Doğrulanıyor..."
+        VerifyBtn.Text = "⏳  Verifying..."
         Tw(VerifyBtn, 0.15, {BackgroundColor3 = T.Yellow})
         KeyStatus.TextColor3 = T.TextAcc
-        KeyStatus.Text = "Key kontrol ediliyor..."
+        KeyStatus.Text = "Verifying key with database..."
 
-        task.delay(0.6, function()
+        task.delay(0.5, function()
             if validateKey(inputKey) then
-                keyVerified = true
+                setVerifiedGlobals(inputKey)
                 saveKey(inputKey)
                 KeyStatus.TextColor3 = T.Green
-                KeyStatus.Text = "✓ Key doğrulandı! SYNOX HUB yükleniyor..."
-                VerifyBtn.Text = "✓  Doğrulandı!"
+                KeyStatus.Text = "✓ Key verified! Loading SYNOX HUB..."
+                VerifyBtn.Text = "✓  Verified!"
                 Tw(VerifyBtn, 0.2, {BackgroundColor3 = T.Green})
 
-                for _, child in ipairs(LockRing:GetChildren()) do
-                    if child:IsA("TextLabel") then child.Text = "🔓" end
-                end
+                LockIcon.Text = "🔓"
                 Tw(LockRing, 0.3, {BackgroundTransparency = 0.3})
                 local lockStroke = LockRing:FindFirstChildOfClass("UIStroke")
                 if lockStroke then Tw(lockStroke, 0.3, {Color = T.Green}) end
 
-                task.delay(1, function()
+                task.delay(0.8, function()
                     Tw(KeyOuter, 0.4, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
                     Tw(KeyOverlay, 0.5, {BackgroundTransparency = 1})
                     task.delay(0.55, function()
@@ -597,8 +605,8 @@ local function showKeySystem(onSuccess)
                 end)
             else
                 KeyStatus.TextColor3 = T.Red
-                KeyStatus.Text = "✕ Geçersiz key! Tekrar deneyin."
-                VerifyBtn.Text = "✓  Doğrula"
+                KeyStatus.Text = "✕ Invalid key! Please check your Discord key."
+                VerifyBtn.Text = "✓  Verify Key"
                 Tw(VerifyBtn, 0.15, {BackgroundColor3 = T.BtnExec})
                 shakeInput()
                 Tw(keyInputStroke, 0.15, {Color = T.Red, Transparency = 0.2})
@@ -618,8 +626,8 @@ local function showKeySystem(onSuccess)
     KeyOverlay.BackgroundTransparency = 1
 
     task.delay(0.05, function()
-        Tw(KeyOverlay, 0.3, {BackgroundTransparency = 0.1})
-        Tw(KeyOuter, 0.5, {Size = UDim2.new(0, 420, 0, 370), BackgroundTransparency = T.OuterT}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        Tw(KeyOverlay, 0.3, {BackgroundTransparency = 0.12})
+        Tw(KeyOuter, 0.5, {Size = UDim2.new(0, 430, 0, 360), BackgroundTransparency = T.OuterT}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     end)
 end
 
@@ -705,7 +713,7 @@ local function buildHub()
 
     local AvatarC = C("Frame", {Size = UDim2.new(0, 55, 0, 55), Position = UDim2.new(0, 12, 0.5, -27), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, Parent = ProfFrame})
     Corner(AvatarC, UDim.new(1, 0)); Stroke(AvatarC, T.Accent, 2, 0.3)
-    local AvatarImg = C("ImageLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 47, 0, 47), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(40, 40, 50), BorderSizePixel = 0, Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(LocalPlayer.UserId) .. "&w=150&h=150", Parent = AvatarC})
+    local AvatarImg = C("ImageLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 47, 0, 47), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(35, 35, 45), BorderSizePixel = 0, Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(LocalPlayer.UserId) .. "&w=150&h=150", Parent = AvatarC})
     Corner(AvatarImg, UDim.new(1, 0))
 
     C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 18), Position = UDim2.new(0, 78, 0, 14), BackgroundTransparency = 1, Text = "@" .. LocalPlayer.Name, TextColor3 = T.TextPri, TextSize = 14, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = ProfFrame})
@@ -739,9 +747,8 @@ local function buildHub()
     local SValLabel = C("TextLabel", {Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0, 0, 0, 14), BackgroundTransparency = 1, Text = "Connected • All Systems Online", TextColor3 = T.Green, TextSize = 11, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = SSec})
     local SDet = C("TextLabel", {Size = UDim2.new(1, 0, 0, 12), Position = UDim2.new(0, 0, 0, 30), BackgroundTransparency = 1, Text = "• 0 scripts loaded   • PlaceId: " .. tostring(CURRENT_PLACE_ID), TextColor3 = T.TextSec, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = SSec})
 
-    -- Auto-detect badge
     if #autoDetectedGames > 0 then
-        SValLabel.Text = "Connected • Oyun Tespit Edildi: " .. autoDetectedGames[1].Name
+        SValLabel.Text = "Connected • Game Detected: " .. autoDetectedGames[1].Name
         SValLabel.TextColor3 = T.Accent
     end
 
@@ -767,22 +774,26 @@ local function buildHub()
     local DetailPanel = C("Frame", {Size = UDim2.new(1, 0, 0, 140), Position = UDim2.new(0, 0, 0, 46), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = GameDetailView})
     Corner(DetailPanel, T.CRS); Stroke(DetailPanel, T.CardStroke, 1, 0.6)
 
-    local DetailThumb = C("ImageLabel", {Size = UDim2.new(0, 120, 0, 120), Position = UDim2.new(0, 10, 0.5, -60), BackgroundColor3 = T.ThumbBg, BorderSizePixel = 0, Image = "", ScaleType = Enum.ScaleType.Crop, Parent = DetailPanel})
-    Corner(DetailThumb, T.CRS)
-    local DetailThumbPlaceholder = C("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "🖼️", TextSize = 36, Font = T.FB, TextColor3 = T.TextMut, Parent = DetailThumb})
+    -- Detail Thumbnail with dark frame and emoji fallback
+    local DetailThumbFrame = C("Frame", {Size = UDim2.new(0, 120, 0, 120), Position = UDim2.new(0, 10, 0.5, -60), BackgroundColor3 = T.ThumbBg, BorderSizePixel = 0, ClipsDescendants = true, Parent = DetailPanel})
+    Corner(DetailThumbFrame, T.CRS)
+    Stroke(DetailThumbFrame, T.CardStroke, 1, 0.6)
+
+    local DetailThumbImg = C("ImageLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ScaleType = Enum.ScaleType.Crop, Image = "", Parent = DetailThumbFrame})
+    local DetailThumbPlaceholder = C("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "🎮", TextSize = 42, Font = T.FB, TextColor3 = T.TextAcc, Parent = DetailThumbFrame})
 
     local DetailName = C("TextLabel", {Size = UDim2.new(0.55, 0, 0, 24), Position = UDim2.new(0, 142, 0, 18), BackgroundTransparency = 1, Text = "Game Name", TextColor3 = T.TextPri, TextSize = 18, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = DetailPanel})
     local DetailTag = C("TextLabel", {Size = UDim2.new(0, 90, 0, 18), Position = UDim2.new(0, 142, 0, 46), BackgroundColor3 = Color3.fromRGB(0, 120, 150), BackgroundTransparency = 0.7, Text = " Supported ", TextColor3 = T.TextAcc, TextSize = 10, Font = T.FB, Parent = DetailPanel})
     Corner(DetailTag, UDim.new(0, 3))
 
-    local DetailExecBtn = C("TextButton", {Size = UDim2.new(0, 150, 0, 40), Position = UDim2.new(0, 142, 0, 78), BackgroundColor3 = T.BtnExec, Text = "Çalıştır", TextColor3 = Color3.new(1, 1, 1), TextSize = 15, Font = T.FT, BorderSizePixel = 0, AutoButtonColor = false, Parent = DetailPanel})
+    local DetailExecBtn = C("TextButton", {Size = UDim2.new(0, 150, 0, 40), Position = UDim2.new(0, 142, 0, 78), BackgroundColor3 = T.BtnExec, Text = "Execute", TextColor3 = Color3.new(1, 1, 1), TextSize = 15, Font = T.FT, BorderSizePixel = 0, AutoButtonColor = false, Parent = DetailPanel})
     Corner(DetailExecBtn, T.CRS)
     DetailExecBtn.MouseEnter:Connect(function() Tw(DetailExecBtn, 0.2, {BackgroundColor3 = T.BtnExecH}) end)
     DetailExecBtn.MouseLeave:Connect(function() Tw(DetailExecBtn, 0.2, {BackgroundColor3 = T.BtnExec}) end)
 
     local DescSection = C("Frame", {Size = UDim2.new(1, 0, 1, -196), Position = UDim2.new(0, 0, 0, 192), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, ClipsDescendants = true, Parent = GameDetailView})
     Corner(DescSection, T.CRS); Stroke(DescSection, T.CardStroke, 1, 0.6); Pad(DescSection, 10, 12, 10, 12)
-    C("TextLabel", {Size = UDim2.new(1, 0, 0, 14), BackgroundTransparency = 1, Text = "AÇIKLAMA", TextColor3 = T.TextMut, TextSize = 10, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DescSection})
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 14), BackgroundTransparency = 1, Text = "DESCRIPTION", TextColor3 = T.TextMut, TextSize = 10, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DescSection})
     local DescScroll = C("ScrollingFrame", {Size = UDim2.new(1, 0, 1, -20), Position = UDim2.new(0, 0, 0, 18), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = T.Scroll, ScrollBarImageTransparency = 0.5, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = DescSection})
     local DescText = C("TextLabel", {Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1, Text = "", TextColor3 = T.TextPri, TextSize = 13, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, AutomaticSize = Enum.AutomaticSize.Y, Parent = DescScroll})
 
@@ -797,7 +808,7 @@ local function buildHub()
     local SBC = C("Frame", {Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SeP})
     Corner(SBC, T.CRS); Stroke(SBC, T.CardStroke, 1, 0.6)
     C("TextLabel", {Size = UDim2.new(0, 30, 1, 0), Position = UDim2.new(0, 4, 0, 0), BackgroundTransparency = 1, Text = "🔍", TextSize = 14, Font = T.FB, Parent = SBC})
-    local SI = C("TextBox", {Size = UDim2.new(1, -40, 1, 0), Position = UDim2.new(0, 34, 0, 0), BackgroundTransparency = 1, Text = "", PlaceholderText = "Script ara...", PlaceholderColor3 = T.TextMut, TextColor3 = T.TextPri, TextSize = 13, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = SBC})
+    local SI = C("TextBox", {Size = UDim2.new(1, -40, 1, 0), Position = UDim2.new(0, 34, 0, 0), BackgroundTransparency = 1, Text = "", PlaceholderText = "Search scripts...", PlaceholderColor3 = T.TextMut, TextColor3 = T.TextPri, TextSize = 13, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = SBC})
 
     SI.Focused:Connect(function() local s = SBC:FindFirstChildOfClass("UIStroke"); if s then Tw(s, 0.2, {Color = T.Accent, Transparency = 0.3}) end end)
     SI.FocusLost:Connect(function() local s = SBC:FindFirstChildOfClass("UIStroke"); if s then Tw(s, 0.2, {Color = T.CardStroke, Transparency = 0.6}) end end)
@@ -805,7 +816,7 @@ local function buildHub()
     local SRS = C("ScrollingFrame", {Size = UDim2.new(1, 0, 1, -44), Position = UDim2.new(0, 0, 0, 42), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 4, ScrollBarImageColor3 = T.Scroll, ScrollBarImageTransparency = 0.5, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = SeP})
     C("UIListLayout", {Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = SRS})
     Pad(SRS, 4, 4, 4, 4)
-    local NR = C("TextLabel", {Name = "NR", Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, Text = "Script aramak için yazın...", TextColor3 = T.TextMut, TextSize = 12, Font = T.FB, Parent = SRS})
+    local NR = C("TextLabel", {Name = "NR", Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, Text = "Type to search scripts...", TextColor3 = T.TextMut, TextSize = 12, Font = T.FB, Parent = SRS})
 
     -- ══════════════════════════════════════════════════════════
     -- SETTINGS PAGE
@@ -813,7 +824,7 @@ local function buildHub()
     local SetP = C("Frame", {Name = "Settings", Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Visible = false, Parent = PC})
     Pad(SetP, 10, 12, 10, 12)
 
-    C("TextLabel", {Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "⚙️  Ayarlar", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, Parent = SetP})
+    C("TextLabel", {Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, Text = "⚙️  Settings", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, Parent = SetP})
     C("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 0, 26), BackgroundColor3 = T.CardStroke, BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = SetP})
 
     -- Hotkey setting
@@ -821,7 +832,7 @@ local function buildHub()
     Corner(HotkeyCard, T.CRS); Stroke(HotkeyCard, T.CardStroke, 1, 0.6); Pad(HotkeyCard, 10, 12, 10, 12)
 
     C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "Toggle Hotkey", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = HotkeyCard})
-    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 14), Position = UDim2.new(0, 0, 0, 18), BackgroundTransparency = 1, Text = "Butona basıp herhangi bir tuş seçin", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = HotkeyCard})
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 14), Position = UDim2.new(0, 0, 0, 18), BackgroundTransparency = 1, Text = "Click button, then press any key to rebind", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = HotkeyCard})
 
     local HotkeyBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 140, 0, 32), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.InputBg, Text = KeyNames[currentHotkey] or "RightControl", TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = HotkeyCard})
     Corner(HotkeyBtn, T.CRS); Stroke(HotkeyBtn, T.CardStroke, 1, 0.5)
@@ -832,7 +843,7 @@ local function buildHub()
     HotkeyBtn.MouseButton1Click:Connect(function()
         if listeningForHotkey then return end
         listeningForHotkey = true
-        HotkeyBtn.Text = "Bir tuşa basın..."
+        HotkeyBtn.Text = "Press a key..."
         HotkeyBtn.TextColor3 = T.Yellow
         local stroke = HotkeyBtn:FindFirstChildOfClass("UIStroke")
         if stroke then Tw(stroke, 0.2, {Color = T.Yellow}) end
@@ -845,7 +856,7 @@ local function buildHub()
                 if stroke then Tw(stroke, 0.2, {Color = T.CardStroke}) end
                 listeningForHotkey = false
                 if hotkeyConnection then hotkeyConnection:Disconnect(); hotkeyConnection = nil end
-                NInfo("SYNOX HUB", "Toggle hotkey değiştirildi: " .. (KeyNames[input.KeyCode] or input.KeyCode.Name))
+                NInfo("SYNOX HUB", "Toggle hotkey changed to: " .. (KeyNames[input.KeyCode] or input.KeyCode.Name))
             end
         end)
     end)
@@ -856,27 +867,27 @@ local function buildHub()
     -- Key info card
     local KeyInfoCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 106), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(KeyInfoCard, T.CRS); Stroke(KeyInfoCard, T.CardStroke, 1, 0.6); Pad(KeyInfoCard, 10, 12, 10, 12)
-    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "Key Durumu", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyInfoCard})
-    local KeyStatusBadge = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 22), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Green, BackgroundTransparency = 0.8, Text = "✓ Doğrulandı", TextColor3 = T.Green, TextSize = 11, Font = T.FH, BorderSizePixel = 0, Parent = KeyInfoCard})
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "License Status", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyInfoCard})
+    local KeyStatusBadge = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 22), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Green, BackgroundTransparency = 0.8, Text = "✓ Verified", TextColor3 = T.Green, TextSize = 11, Font = T.FH, BorderSizePixel = 0, Parent = KeyInfoCard})
     Corner(KeyStatusBadge, UDim.new(0, 3))
 
     -- Version card
     local VerCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 163), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(VerCard, T.CRS); Stroke(VerCard, T.CardStroke, 1, 0.6); Pad(VerCard, 10, 12, 10, 12)
-    C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Versiyon", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = VerCard})
+    C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Version", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = VerCard})
     C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 80, 0, 16), Position = UDim2.new(1, 0, 0.5, 0), BackgroundTransparency = 1, Text = "v" .. CONFIG.Version, TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Right, Parent = VerCard})
 
     -- Discord card
     local DiscCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 220), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(DiscCard, T.CRS); Stroke(DiscCard, T.CardStroke, 1, 0.6); Pad(DiscCard, 10, 12, 10, 12)
-    C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Discord", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DiscCard})
-    local CopyDiscBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "Linki Kopyala", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = DiscCard})
+    C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Official Discord", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DiscCard})
+    local CopyDiscBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "Copy Link", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = DiscCard})
     Corner(CopyDiscBtn, T.CRS)
 
     CopyDiscBtn.MouseButton1Click:Connect(function()
         if setclipboard then setclipboard(CONFIG.DiscordLink) end
-        CopyDiscBtn.Text = "✓ Kopyalandı!"
-        task.delay(1.5, function() CopyDiscBtn.Text = "Linki Kopyala" end)
+        CopyDiscBtn.Text = "✓ Copied!"
+        task.delay(1.5, function() CopyDiscBtn.Text = "Copy Link" end)
     end)
     CopyDiscBtn.MouseEnter:Connect(function() Tw(CopyDiscBtn, 0.2, {BackgroundTransparency = 0}) end)
     CopyDiscBtn.MouseLeave:Connect(function() Tw(CopyDiscBtn, 0.2, {BackgroundTransparency = 0.15}) end)
@@ -926,12 +937,20 @@ local function buildHub()
     local function openGameDetail(gameData)
         currentDetailGame = gameData
         if gameData.ImageId and gameData.ImageId ~= "" then
-            DetailThumb.Image = gameData.ImageId; DetailThumbPlaceholder.Visible = false
-        else DetailThumb.Image = ""; DetailThumbPlaceholder.Visible = true end
+            DetailThumbImg.Image = gameData.ImageId
+            DetailThumbPlaceholder.Visible = false
+            DetailThumbImg.Visible = true
+        else
+            DetailThumbImg.Image = ""
+            DetailThumbImg.Visible = false
+            DetailThumbPlaceholder.Text = gameData.Icon or "🎮"
+            DetailThumbPlaceholder.Visible = true
+        end
+
         DetailName.Text = gameData.Name or "Unknown"
         DetailTag.Text = " " .. (gameData.Tag or "Supported") .. " "
-        DescText.Text = gameData.Description or "Açıklama yok."
-        DetailExecBtn.Text = "Çalıştır"
+        DescText.Text = gameData.Description or "No description available."
+        DetailExecBtn.Text = "Execute"
         Tw(DetailExecBtn, 0.1, {BackgroundColor3 = T.BtnExec})
 
         if activeTab ~= "Games" then switchTab("Games") end
@@ -954,7 +973,7 @@ local function buildHub()
     DetailExecBtn.MouseButton1Click:Connect(function()
         if not currentDetailGame then return end
         Ripple(DetailExecBtn, Vector2.new(DetailExecBtn.AbsolutePosition.X + 75, DetailExecBtn.AbsolutePosition.Y + 20))
-        DetailExecBtn.Text = "Yükleniyor..."
+        DetailExecBtn.Text = "Executing..."
         Tw(DetailExecBtn, 0.15, {BackgroundColor3 = Color3.fromRGB(30, 160, 40)})
         local ok, err = pcall(function()
             if currentDetailGame.Callback then currentDetailGame.Callback()
@@ -962,13 +981,13 @@ local function buildHub()
         end)
         task.delay(0.5, function()
             if ok then
-                DetailExecBtn.Text = "✓ Yüklendi"; Tw(DetailExecBtn, 0.15, {BackgroundColor3 = T.Green})
-                NInfo("SYNOX HUB", currentDetailGame.Name .. " başarıyla yüklendi!")
+                DetailExecBtn.Text = "✓ Executed"; Tw(DetailExecBtn, 0.15, {BackgroundColor3 = T.Green})
+                NInfo("SYNOX HUB", currentDetailGame.Name .. " executed successfully!")
             else
-                DetailExecBtn.Text = "✕ Hata"; Tw(DetailExecBtn, 0.15, {BackgroundColor3 = T.BtnDng})
-                NError("Hata", currentDetailGame.Name .. " yüklenemedi:\n" .. tostring(err))
+                DetailExecBtn.Text = "✕ Error"; Tw(DetailExecBtn, 0.15, {BackgroundColor3 = T.BtnDng})
+                NError("Error", currentDetailGame.Name .. " failed:\n" .. tostring(err))
             end
-            task.delay(2, function() DetailExecBtn.Text = "Çalıştır"; Tw(DetailExecBtn, 0.25, {BackgroundColor3 = T.BtnExec}) end)
+            task.delay(2, function() DetailExecBtn.Text = "Execute"; Tw(DetailExecBtn, 0.25, {BackgroundColor3 = T.BtnExec}) end)
         end)
     end)
 
@@ -984,13 +1003,32 @@ local function buildHub()
         local card = C("TextButton", {Size = UDim2.new(1, 0, 0, 85), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, LayoutOrder = layoutOrder or 0, Text = "", AutoButtonColor = false, Parent = parent})
         Corner(card, T.CRS); Stroke(card, isDetected and T.Accent or T.CardStroke, 1, isDetected and 0.3 or 0.6)
 
-        local thumb = C("ImageLabel", {Size = UDim2.new(0, 70, 0, 70), Position = UDim2.new(0, 8, 0.5, -35), BackgroundColor3 = T.ThumbBg, BorderSizePixel = 0, ScaleType = Enum.ScaleType.Crop, Parent = card})
+        -- Thumbnail frame with dark background
+        local thumb = C("Frame", {Size = UDim2.new(0, 70, 0, 70), Position = UDim2.new(0, 8, 0.5, -35), BackgroundColor3 = T.ThumbBg, BorderSizePixel = 0, ClipsDescendants = true, Parent = card})
         Corner(thumb, T.CRS)
-        if gameData.ImageId and gameData.ImageId ~= "" then
-            thumb.Image = gameData.ImageId
-        else
-            C("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = gameData.Icon or "🖼️", TextSize = 26, Font = T.FB, TextColor3 = T.TextMut, Parent = thumb})
-        end
+        Stroke(thumb, T.CardStroke, 1, 0.5)
+
+        local hasImage = (gameData.ImageId and gameData.ImageId ~= "")
+        local thumbImg = C("ImageLabel", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScaleType = Enum.ScaleType.Crop,
+            Image = hasImage and gameData.ImageId or "",
+            Visible = hasImage,
+            Parent = thumb
+        })
+
+        local thumbPlaceholder = C("TextLabel", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text = gameData.Icon or "🎮",
+            TextSize = 28,
+            Font = T.FB,
+            TextColor3 = T.TextAcc,
+            Visible = not hasImage,
+            Parent = thumb
+        })
 
         C("TextLabel", {Size = UDim2.new(0.5, -10, 0, 18), Position = UDim2.new(0, 86, 0, 12), BackgroundTransparency = 1, Text = gameData.Name or "Unknown", TextColor3 = T.TextPri, TextSize = 14, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = card})
 
@@ -1000,11 +1038,11 @@ local function buildHub()
         Corner(gt, UDim.new(0, 3))
 
         if isDetected then
-            local dtag = C("TextLabel", {Size = UDim2.new(0, 65, 0, 16), Position = UDim2.new(0, tagX + 80, 0, 34), BackgroundColor3 = T.Green, BackgroundTransparency = 0.7, Text = " ✓ Aktif ", TextColor3 = T.Green, TextSize = 9, Font = T.FH, Parent = card})
+            local dtag = C("TextLabel", {Size = UDim2.new(0, 65, 0, 16), Position = UDim2.new(0, tagX + 80, 0, 34), BackgroundColor3 = T.Green, BackgroundTransparency = 0.7, Text = " ✓ Active ", TextColor3 = T.Green, TextSize = 9, Font = T.FH, Parent = card})
             Corner(dtag, UDim.new(0, 3))
         end
 
-        C("TextLabel", {Size = UDim2.new(0.5, -10, 0, 14), Position = UDim2.new(0, 86, 0, 54), BackgroundTransparency = 1, Text = gameData.ShortDesc or "Detaylar için tıklayın", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = card})
+        C("TextLabel", {Size = UDim2.new(0.5, -10, 0, 14), Position = UDim2.new(0, 86, 0, 54), BackgroundTransparency = 1, Text = gameData.ShortDesc or "Click to view details", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = card})
         C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -10, 0.5, 0), BackgroundTransparency = 1, Text = "›", TextColor3 = T.TextMut, TextSize = 22, Font = T.FT, Parent = card})
 
         card.MouseEnter:Connect(function()
@@ -1029,7 +1067,7 @@ local function buildHub()
         for _, ch in ipairs(SRS:GetChildren()) do
             if ch:IsA("TextButton") then ch:Destroy() end
         end
-        if q == "" then NR.Text = "Script aramak için yazın..."; NR.Visible = true; return end
+        if q == "" then NR.Text = "Type to search scripts..."; NR.Visible = true; return end
         local ql = string.lower(q)
         local results = {}
         for _, gd in ipairs(gamesList) do
@@ -1037,7 +1075,7 @@ local function buildHub()
                 table.insert(results, gd)
             end
         end
-        if #results == 0 then NR.Text = '"' .. q .. '" için sonuç bulunamadı'; NR.Visible = true
+        if #results == 0 then NR.Text = 'No scripts found for "' .. q .. '"'; NR.Visible = true
         else NR.Visible = false; for i, gd in ipairs(results) do makeGameCard(gd, SRS, i) end end
     end
 
@@ -1050,7 +1088,7 @@ local function buildHub()
         table.insert(gamesList, gameData)
         makeGameCard(gameData, GameListScroll, #gamesList)
         GV.Text = tostring(#gamesList)
-        SDet.Text = "• " .. tostring(#gamesList) .. " script yüklü   • PlaceId: " .. tostring(CURRENT_PLACE_ID)
+        SDet.Text = "• " .. tostring(#gamesList) .. " scripts loaded   • PlaceId: " .. tostring(CURRENT_PLACE_ID)
     end
 
     -- ══════════════════════════════════════════════════════════
@@ -1075,7 +1113,7 @@ local function buildHub()
     -- CLOSE & MINIMIZE
     -- ══════════════════════════════════════════════════════════
     XBtn.MouseButton1Click:Connect(function()
-        NConfirm("SYNOX HUB", "SYNOX HUB'ı kapatmak istediğinize emin misiniz?", function(yes)
+        NConfirm("SYNOX HUB", "Are you sure you want to close SYNOX HUB?", function(yes)
             if yes then
                 destroyed = true
                 for _, c in ipairs(connections) do if c and c.Connected then c:Disconnect() end end
@@ -1119,21 +1157,17 @@ local function buildHub()
     end)
 
     -- ══════════════════════════════════════════════════════════
-    -- ██████████████████████████████████████████████████████████
-    -- █              REGISTER ALL GAME SCRIPTS                █
-    -- ██████████████████████████████████████████████████████████
+    -- REGISTER ALL GAME SCRIPTS
     -- ══════════════════════════════════════════════════════════
-
-    -- Register all games from GAME_REGISTRY
     for _, entry in ipairs(GAME_REGISTRY) do
         AddGame(entry)
     end
 
-    -- Universal Script (her oyunda çalışır)
+    -- Universal Script
     AddGame({
         PlaceIds = {},
         Name = "Universal Script",
-        Description = "Her oyunda çalışan universal script.\n\nÖzellikler:\n• Speed Hack\n• Jump Power\n• Fly Mode\n• Noclip\n• Fullbright\n• Click Teleport (Ctrl+Click)\n• ESP Overlay",
+        Description = "Universal utility script for any Roblox experience.\n\nFeatures:\n• WalkSpeed & JumpPower Modifier\n• Flight Mode & Noclip\n• Fullbright & Visual Enhancements\n• Click Teleport (Ctrl + Click)\n• Player Distance ESP",
         ShortDesc = "Speed, Fly, Noclip, ESP, Fullbright",
         Tag = "Universal",
         Icon = "🌐",
@@ -1157,7 +1191,7 @@ local function buildHub()
                     effect.Enabled = false
                 end
             end
-            NInfo("SYNOX HUB", "Universal Script yüklendi!\n• Speed: 50\n• JumpPower: 120\n• Fullbright aktif")
+            NInfo("SYNOX HUB", "Universal Script loaded!\n• Speed: 50\n• JumpPower: 120\n• Fullbright: Active")
         end
     })
 
@@ -1165,8 +1199,8 @@ local function buildHub()
     AddGame({
         PlaceIds = {},
         Name = "Infinite Yield",
-        Description = "FE Admin komut arayüzü.\n\nÖzellikler:\n• 200+ komut\n• Admin paneli\n• Oyuncu yönetimi\n• Teleport sistemi",
-        ShortDesc = "FE Admin, 200+ Komut",
+        Description = "Universal FE admin command suite.\n\nFeatures:\n• 200+ Administrative Commands\n• Explorer & Tool Inspector\n• Player Management & Teleportation\n• Server Control & Utility Tools",
+        ShortDesc = "FE Admin Suite, 200+ Commands",
         Tag = "Universal",
         Icon = "🔧",
         ImageId = "",
@@ -1177,48 +1211,30 @@ local function buildHub()
     task.delay(1, function()
         local detectMsg = ""
         if #autoDetectedGames > 0 then
-            detectMsg = "\n\n🎮 Oyun tespit edildi: " .. autoDetectedGames[1].Name
+            detectMsg = "\n\n🎮 Game detected: " .. autoDetectedGames[1].Name
         end
-        NInfo("SYNOX HUB", "Hoş geldin, @" .. LocalPlayer.Name .. "!\nSYNOX HUB v" .. CONFIG.Version .. " yüklendi.\n\n• " .. tostring(#gamesList) .. " script hazır\n• " .. (KeyNames[currentHotkey] or "RightControl") .. " ile aç/kapat" .. detectMsg)
+        NInfo("SYNOX HUB", "Welcome back, @" .. LocalPlayer.Name .. "!\nSYNOX HUB v" .. CONFIG.Version .. " loaded.\n\n• " .. tostring(#gamesList) .. " scripts ready\n• Press " .. (KeyNames[currentHotkey] or "RightControl") .. " to toggle" .. detectMsg)
     end)
 
     print("[SYNOX HUB] v" .. CONFIG.Version .. " Loaded • " .. tostring(#gamesList) .. " scripts • PlaceId: " .. tostring(CURRENT_PLACE_ID))
 end
 
 -- ══════════════════════════════════════════════════════════════
--- ████████████████████████████████████████████████████████████
--- █                LAUNCH SEQUENCE                            █
--- ████████████████████████████████████████████████████████████
--- ══════════════════════════════════════════════════════════════
+-- LAUNCH SEQUENCE
+-- ══════════════════════════════════════════════════════════
 
 showKeySystem(function()
     -- Key verified — now check auto-detection
     if CONFIG.AutoDetectEnabled and #autoDetectedGames > 0 then
-        if #autoDetectedGames == 1 then
-            -- Tek script tespit edildi → direkt sor: çalıştır mı yoksa hub aç mı?
-            showSelectionDialog(autoDetectedGames, function(selectedGame)
-                -- Kullanıcı çalıştırmayı seçti
-                buildHub()
-                task.delay(0.5, function()
-                    executeGameScript(selectedGame)
-                end)
-            end, function()
-                -- Kullanıcı hub'ı seçti
-                buildHub()
+        showSelectionDialog(autoDetectedGames, function(selectedGame)
+            buildHub()
+            task.delay(0.5, function()
+                executeGameScript(selectedGame)
             end)
-        else
-            -- Birden fazla script tespit edildi → hepsini göster
-            showSelectionDialog(autoDetectedGames, function(selectedGame)
-                buildHub()
-                task.delay(0.5, function()
-                    executeGameScript(selectedGame)
-                end)
-            end, function()
-                buildHub()
-            end)
-        end
+        end, function()
+            buildHub()
+        end)
     else
-        -- Oyun tespit edilemedi → direkt hub aç
         buildHub()
     end
 end)

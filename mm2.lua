@@ -1402,5 +1402,9 @@ end
 -- ================================================================
 -- LAUNCH
 -- ================================================================
-local ok,err=pcall(function() showKeySystem(buildUI) end)
-if not ok then warn("[SYNOX MM2 ERROR]: "..tostring(err)) end
+if _G.SynoxKeyVerified or (getgenv and getgenv().SynoxKeyVerified) then
+    buildUI()
+else
+    local ok,err=pcall(function() showKeySystem(buildUI) end)
+    if not ok then warn("[SYNOX MM2 ERROR]: "..tostring(err)) end
+end
