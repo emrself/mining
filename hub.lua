@@ -278,12 +278,24 @@ end
 -- ══════════════════════════════════════════════════════════════
 local function findMatchingGames(placeId)
     local matches = {}
+    local currentUniverseId = game.GameId
     for _, entry in ipairs(GAME_REGISTRY) do
-        for _, pid in ipairs(entry.PlaceIds) do
-            if pid == placeId then
-                table.insert(matches, entry)
-                break
+        local matched = false
+        if entry.PlaceIds then
+            for _, pid in ipairs(entry.PlaceIds) do
+                if pid == placeId then
+                    matched = true
+                    break
+                end
             end
+        end
+        if not matched and entry.UniverseId and currentUniverseId and currentUniverseId > 0 then
+            if entry.UniverseId == currentUniverseId then
+                matched = true
+            end
+        end
+        if matched then
+            table.insert(matches, entry)
         end
     end
     return matches
@@ -865,6 +877,9 @@ local function buildHub()
     if #autoDetectedGames > 0 then
         SValLabel.Text = "Connected • Game Detected: " .. autoDetectedGames[1].Name
         SValLabel.TextColor3 = T.Accent
+    else
+        SValLabel.Text = "Connected • Universal Mode"
+        SValLabel.TextColor3 = T.Green
     end
 
     -- ══════════════════════════════════════════════════════════
@@ -1290,13 +1305,17 @@ local function buildHub()
     end)
 
     -- ══════════════════════════════════════════════════════════
-    -- REGISTER ALL GAME SCRIPTS
+    -- REGISTER GAME SCRIPTS (CONTEXT-AWARE FILTERING)
     -- ══════════════════════════════════════════════════════════
-    for _, entry in ipairs(GAME_REGISTRY) do
-        AddGame(entry)
+    -- If current game is detected, only register scripts for THIS game:
+    if #autoDetectedGames > 0 then
+        for _, entry in ipairs(autoDetectedGames) do
+            AddGame(entry)
+        end
     end
+    -- If game is not detected (#autoDetectedGames == 0), other game scripts remain hidden.
 
-    -- Universal Script
+    -- Universal Script (Always available)
     AddGame({
         PlaceIds = {},
         Name = "Universal Script",
@@ -1328,7 +1347,7 @@ local function buildHub()
         end
     })
 
-    -- Infinite Yield
+    -- Infinite Yield (Always available)
     AddGame({
         PlaceIds = {},
         Name = "Infinite Yield",
@@ -1342,11 +1361,12 @@ local function buildHub()
 
     -- Startup notification
     task.delay(1, function()
-        local detectMsg = ""
         if #autoDetectedGames > 0 then
-            detectMsg = "\n\n🎮 Game detected: " .. autoDetectedGames[1].Name
+            local gameName = autoDetectedGames[1].Name
+            NInfo("SYNOX HUB", "Welcome back, @" .. LocalPlayer.Name .. "!\nSYNOX HUB v" .. CONFIG.Version .. " loaded.\n\n• " .. tostring(#gamesList) .. " scripts available\n• Active Game: " .. gameName .. "\n• Press " .. (KeyNames[currentHotkey] or "RightControl") .. " to toggle")
+        else
+            NInfo("SYNOX HUB", "Welcome back, @" .. LocalPlayer.Name .. "!\nSYNOX HUB v" .. CONFIG.Version .. " loaded (Universal Mode).\n\n• " .. tostring(#gamesList) .. " universal scripts available\n• Press " .. (KeyNames[currentHotkey] or "RightControl") .. " to toggle")
         end
-        NInfo("SYNOX HUB", "Welcome back, @" .. LocalPlayer.Name .. "!\nSYNOX HUB v" .. CONFIG.Version .. " loaded.\n\n• " .. tostring(#gamesList) .. " scripts ready\n• Press " .. (KeyNames[currentHotkey] or "RightControl") .. " to toggle" .. detectMsg)
     end)
 
     print("[SYNOX HUB] v" .. CONFIG.Version .. " Loaded • " .. tostring(#gamesList) .. " scripts • PlaceId: " .. tostring(CURRENT_PLACE_ID))
