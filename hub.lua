@@ -499,8 +499,8 @@ local function showKeySystem(onSuccess)
     local KeyTB = C("Frame", {Size = UDim2.new(1, 0, 0, T.TBH), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 110, Parent = KeyPanel})
     Corner(KeyTB, T.CR)
     C("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 110, Parent = KeyTB})
-    C("TextLabel", {Size = UDim2.new(0.8, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 111, Parent = KeyTB})
-    C("Frame", {Size = UDim2.new(0, 60, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 112, Parent = KeyTB})
+    C("TextLabel", {Size = UDim2.new(0.8, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "⚡  SYNOX HUB", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 111, Parent = KeyTB})
+    C("Frame", {Size = UDim2.new(0, 78, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 112, Parent = KeyTB})
 
     -- Close button
     local KeyCloseBtn = C("TextButton", {Size = UDim2.new(0, 28, 0, 28), Position = UDim2.new(1, -34, 0.5, -14), BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5, Text = "✕", TextColor3 = T.TextSec, TextSize = 13, Font = T.FB, BorderSizePixel = 0, ZIndex = 112, AutoButtonColor = false, Parent = KeyTB})
@@ -675,8 +675,8 @@ local function buildHub()
     Corner(TB, T.CR)
     C("Frame", {Size = UDim2.new(1, 0, 0, 10), Position = UDim2.new(0, 0, 1, -10), BackgroundColor3 = T.TitleBg, BackgroundTransparency = T.TitleBgT, BorderSizePixel = 0, ZIndex = 10, Parent = TB})
 
-    C("TextLabel", {Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "SYNOX HUB", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 11, Parent = TB})
-    C("Frame", {Size = UDim2.new(0, 60, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 12, Parent = TB})
+    C("TextLabel", {Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = "⚡  SYNOX HUB", TextColor3 = T.TextPri, TextSize = 16, Font = T.FT, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 11, Parent = TB})
+    C("Frame", {Size = UDim2.new(0, 78, 0, 2), Position = UDim2.new(0, 14, 1, -2), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 12, Parent = TB})
 
     -- Close & Minimize
     local XBtn = C("TextButton", {Size = UDim2.new(0, 30, 0, 30), Position = UDim2.new(1, -38, 0.5, -15), BackgroundColor3 = Color3.fromRGB(45, 45, 55), BackgroundTransparency = 0.5, Text = "✕", TextColor3 = T.TextSec, TextSize = 14, Font = T.FB, BorderSizePixel = 0, ZIndex = 12, AutoButtonColor = false, Parent = TB})
@@ -726,10 +726,110 @@ local function buildHub()
     local ProfFrame = C("Frame", {Size = UDim2.new(1, 0, 0, 80), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = HP})
     Corner(ProfFrame, T.CRS); Stroke(ProfFrame, T.CardStroke, 1, 0.6)
 
-    local AvatarC = C("Frame", {Size = UDim2.new(0, 55, 0, 55), Position = UDim2.new(0, 12, 0.5, -27), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.7, BorderSizePixel = 0, Parent = ProfFrame})
+    local AvatarC = C("Frame", {Size = UDim2.new(0, 56, 0, 56), Position = UDim2.new(0, 12, 0.5, -28), BackgroundColor3 = T.Accent, BackgroundTransparency = 0.8, BorderSizePixel = 0, Parent = ProfFrame})
     Corner(AvatarC, UDim.new(1, 0)); Stroke(AvatarC, T.Accent, 2, 0.3)
-    local AvatarImg = C("ImageLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 47, 0, 47), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(35, 35, 45), BorderSizePixel = 0, Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(LocalPlayer.UserId) .. "&w=150&h=150", Parent = AvatarC})
+
+    local AvatarFallback = C("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1, Text = string.upper(string.sub(LocalPlayer.Name or "U", 1, 1)), TextColor3 = T.TextAcc, TextSize = 22, Font = T.FT, ZIndex = 1, Parent = AvatarC})
+
+    local AvatarImg = C("ImageButton", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 48, 0, 48), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 32), BackgroundTransparency = 0, BorderSizePixel = 0, AutoButtonColor = false, Image = "", ZIndex = 2, Parent = AvatarC})
     Corner(AvatarImg, UDim.new(1, 0))
+
+    -- Multi-tiered reliable User Logo & Avatar loader
+    local loadedCustomLogo = nil
+    local loadedRobloxAvatar = nil
+
+    task.spawn(function()
+        local isIem7r = string.find(string.lower(LocalPlayer.Name or ""), "iem7r") ~= nil
+        local gca = (typeof(getcustomasset) == "function" and getcustomasset) or (typeof(getsynasset) == "function" and getsynasset)
+
+        -- Method 1: Local / Downloaded Brand Logo (iem7r_logo.png)
+        if gca then
+            local paths = {"Synox/iem7r_logo.png", "iem7r_logo.png"}
+            for _, p in ipairs(paths) do
+                pcall(function()
+                    if typeof(isfile) == "function" and isfile(p) then
+                        local a = gca(p)
+                        if a and a ~= "" then loadedCustomLogo = a end
+                    end
+                end)
+                if loadedCustomLogo then break end
+            end
+
+            if not loadedCustomLogo and typeof(writefile) == "function" then
+                local urls = {
+                    "https://raw.githubusercontent.com/emrself/mining/main/iem7r_logo.png",
+                    "https://cdn.jsdelivr.net/gh/emrself/mining@main/iem7r_logo.png",
+                }
+                for _, u in ipairs(urls) do
+                    pcall(function()
+                        local data = fetchText(u)
+                        if data and #data > 500 then
+                            ensureFolder()
+                            writefile("Synox/iem7r_logo.png", data)
+                            local a = gca("Synox/iem7r_logo.png")
+                            if a and a ~= "" then loadedCustomLogo = a end
+                        end
+                    end)
+                    if loadedCustomLogo then break end
+                end
+            end
+        end
+
+        -- Method 2: Official Roblox HeadShot Thumbnail via Players Service
+        pcall(function()
+            local thumb, isReady = Players:GetUserThumbnailAsync(
+                LocalPlayer.UserId,
+                Enum.ThumbnailType.HeadShot,
+                Enum.ThumbnailSize.Size150x150
+            )
+            if thumb and thumb ~= "" then
+                loadedRobloxAvatar = thumb
+            end
+        end)
+
+        -- Method 3: Fallback to AvatarBust
+        if not loadedRobloxAvatar then
+            pcall(function()
+                local thumb2, isReady2 = Players:GetUserThumbnailAsync(
+                    LocalPlayer.UserId,
+                    Enum.ThumbnailType.AvatarBust,
+                    Enum.ThumbnailSize.Size150x150
+                )
+                if thumb2 and thumb2 ~= "" then
+                    loadedRobloxAvatar = thumb2
+                end
+            end)
+        end
+
+        -- Determine primary image to display
+        local primary = nil
+        if isIem7r then
+            primary = loadedCustomLogo or loadedRobloxAvatar
+        else
+            primary = loadedRobloxAvatar or loadedCustomLogo
+        end
+
+        if primary and primary ~= "" then
+            AvatarImg.Image = primary
+            AvatarImg.BackgroundTransparency = 0
+            AvatarFallback.Visible = false
+        else
+            AvatarFallback.Visible = true
+        end
+    end)
+
+    -- Click avatar to toggle between IEM7R Brand Logo and Roblox Character Avatar (if both loaded)
+    AvatarImg.MouseButton1Click:Connect(function()
+        if loadedCustomLogo and loadedRobloxAvatar then
+            if AvatarImg.Image == loadedCustomLogo then
+                AvatarImg.Image = loadedRobloxAvatar
+                NInfo("Profile", "Switched to Roblox Character Avatar")
+            else
+                AvatarImg.Image = loadedCustomLogo
+                NInfo("Profile", "Switched to IEM7R Brand Logo")
+            end
+        end
+    end)
 
     C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 18), Position = UDim2.new(0, 78, 0, 14), BackgroundTransparency = 1, Text = "@" .. LocalPlayer.Name, TextColor3 = T.TextPri, TextSize = 14, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = ProfFrame})
     C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 14), Position = UDim2.new(0, 78, 0, 34), BackgroundTransparency = 1, Text = "SYNOX HUB v" .. CONFIG.Version .. " • Premium", TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = ProfFrame})
