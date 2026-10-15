@@ -12,6 +12,9 @@
 -- ══════════════════════════════════════════════════════════════
 local CONFIG = {
     KeySystemEnabled = true,
+    -- Discord Bot Web API Validation Endpoint (e.g. hosted on Render / VPS / Cloud)
+    KeyApiURL = "https://discord-hub-botu.onrender.com/api/validate",
+    -- Fallback static key list (used if bot API server is offline or unreachable)
     KeyCheckURL = "https://raw.githubusercontent.com/emrself/mining/main/keys.txt",
     DiscordLink = "https://discord.gg/hHQ97ATpR9",
     DefaultHotkey = Enum.KeyCode.RightControl,
@@ -80,10 +83,13 @@ for _, gui in ipairs(CoreGui:GetChildren()) do
 end
 
 -- ══════════════════════════════════════════════════════════════
--- KEY PERSISTENCE
+-- KEY PERSISTENCE & METADATA
 -- ══════════════════════════════════════════════════════════════
 local KEY_FOLDER = "Synox"
 local KEY_FILE = KEY_FOLDER .. "/key.dat"
+local KEY_META_FILE = KEY_FOLDER .. "/key_meta.json"
+
+local currentKeyMeta = nil
 
 local function ensureFolder()
     pcall(function()
@@ -93,11 +99,17 @@ local function ensureFolder()
     end)
 end
 
-local function saveKey(k)
+local function saveKey(k, meta)
     pcall(function()
         if typeof(writefile) == "function" then
-            local ok = pcall(function() ensureFolder(); writefile(KEY_FILE, k) end)
+            ensureFolder()
+            local ok = pcall(function() writefile(KEY_FILE, k) end)
             if not ok then pcall(function() writefile("synox_key.dat", k) end) end
+            if meta then
+                local metaStr = HttpService:JSONEncode(meta)
+                pcall(function() writefile(KEY_META_FILE, metaStr) end)
+                pcall(function() writefile("synox_key_meta.json", metaStr) end)
+            end
         end
     end)
 end
@@ -113,18 +125,36 @@ local function loadSavedKey()
     return s and r or nil
 end
 
+local function loadSavedMeta()
+    local s, r = pcall(function()
+        if typeof(isfile) == "function" and typeof(readfile) == "function" then
+            local raw = nil
+            if isfile(KEY_META_FILE) then raw = readfile(KEY_META_FILE)
+            elseif isfile("synox_key_meta.json") then raw = readfile("synox_key_meta.json") end
+            if raw and #raw > 0 then return HttpService:JSONDecode(raw) end
+        end
+        return nil
+    end)
+    return (s and type(r) == "table") and r or nil
+end
+
 local function deleteSavedKey()
     pcall(function()
         if typeof(delfile) == "function" and typeof(isfile) == "function" then
             if isfile(KEY_FILE) then delfile(KEY_FILE) end
             if isfile("synox_key.dat") then delfile("synox_key.dat") end
+            if isfile(KEY_META_FILE) then delfile(KEY_META_FILE) end
+            if isfile("synox_key_meta.json") then delfile("synox_key_meta.json") end
         end
     end)
+    currentKeyMeta = nil
     _G.SynoxKeyVerified = nil
     _G.SynoxKey = nil
+    _G.SynoxKeyMeta = nil
     if getgenv then
         getgenv().SynoxKeyVerified = nil
         getgenv().SynoxKey = nil
+        getgenv().SynoxKeyMeta = nil
     end
 end
 
@@ -149,25 +179,63 @@ local function fetchText(url)
 end
 
 -- ══════════════════════════════════════════════════════════════
--- KEY VALIDATION
+-- KEY VALIDATION (Bot Web API + Fallback)
 -- ══════════════════════════════════════════════════════════════
 local function validateKey(inputKey)
-    if not inputKey or inputKey == "" then return false end
-    local resp = fetchText(CONFIG.KeyCheckURL)
-    if not resp then return false end
-    local LF = string.char(10)
-    local CR = string.char(13)
-    local pos = 1
-    while pos <= #resp do
-        local nl = string.find(resp, LF, pos, true)
-        local seg
-        if nl then seg = string.sub(resp, pos, nl - 1); pos = nl + 1
-        else seg = string.sub(resp, pos); pos = #resp + 1 end
-        local clean = string.gsub(seg, CR, "")
-        local trimmed = string.match(clean, "^%s*(.-)%s*$")
-        if trimmed and trimmed == inputKey then return true end
+    if not inputKey or inputKey == "" then
+        return false, "Please enter a license key.", nil
     end
-    return false
+
+    local cleanKey = string.upper(string.match(inputKey, "^%s*(.-)%s*") or "")
+    if cleanKey == "" then
+        return false, "License key cannot be blank.", nil
+    end
+
+    -- 1. Query Discord Bot Web API if configured
+    if CONFIG.KeyApiURL and CONFIG.KeyApiURL ~= "" and not string.find(CONFIG.KeyApiURL, "your%-bot%-domain") then
+        local uName = LocalPlayer and LocalPlayer.Name or "Unknown"
+        local uId = LocalPlayer and tostring(LocalPlayer.UserId) or "0"
+        local sep = string.find(CONFIG.KeyApiURL, "?") and "&" or "?"
+        local queryUrl = CONFIG.KeyApiURL .. sep .. "key=" .. cleanKey .. "&userId=" .. uId .. "&username=" .. uName
+
+        local apiResp = fetchText(queryUrl)
+        if apiResp and #apiResp > 0 then
+            local ok, data = pcall(function()
+                return HttpService:JSONDecode(apiResp)
+            end)
+
+            if ok and type(data) == "table" then
+                if data.valid == true then
+                    return true, (data.message or "Key verified successfully!"), data
+                else
+                    return false, (data.error or "Invalid key! Please claim a new key on Discord."), data
+                end
+            end
+        end
+    end
+
+    -- 2. Fallback to static key list (e.g. GitHub raw file)
+    if CONFIG.KeyCheckURL and CONFIG.KeyCheckURL ~= "" then
+        local resp = fetchText(CONFIG.KeyCheckURL)
+        if resp then
+            local LF = string.char(10)
+            local CR = string.char(13)
+            local pos = 1
+            while pos <= #resp do
+                local nl = string.find(resp, LF, pos, true)
+                local seg
+                if nl then seg = string.sub(resp, pos, nl - 1); pos = nl + 1
+                else seg = string.sub(resp, pos); pos = #resp + 1 end
+                local clean = string.gsub(seg, CR, "")
+                local trimmed = string.upper(string.match(clean, "^%s*(.-)%s*") or "")
+                if trimmed and trimmed == cleanKey then
+                    return true, "Key verified via backup list!", { valid = true, type = "static", key = cleanKey }
+                end
+            end
+        end
+    end
+
+    return false, "Invalid key! Please claim your 24h key from Discord.", nil
 end
 
 -- ══════════════════════════════════════════════════════════════
@@ -181,6 +249,11 @@ end)
 local function NInfo(t, m)
     if MessageBox then
         MessageBox.Show({Position = UDim2.new(0.5, 0, 0.5, 0), Text = t or "SYNOX HUB", Description = m or "", MessageBoxIcon = "Question", MessageBoxButtons = "OK"})
+    end
+end
+local function NWarning(t, m)
+    if MessageBox then
+        MessageBox.Show({Position = UDim2.new(0.5, 0, 0.5, 0), Text = t or "Warning", Description = m or "", MessageBoxIcon = "Warning", MessageBoxButtons = "OK"})
     end
 end
 local function NError(t, m)
@@ -466,21 +539,24 @@ end
 
 local keyVerified = false
 
-local function setVerifiedGlobals(key)
+local function setVerifiedGlobals(key, meta)
     keyVerified = true
+    currentKeyMeta = meta or loadSavedMeta() or {}
     if _G then
         _G.SynoxKeyVerified = true
         _G.SynoxKey = key
+        _G.SynoxKeyMeta = currentKeyMeta
     end
     if getgenv then
         getgenv().SynoxKeyVerified = true
         getgenv().SynoxKey = key
+        getgenv().SynoxKeyMeta = currentKeyMeta
     end
 end
 
 local function showKeySystem(onSuccess)
     if not CONFIG.KeySystemEnabled then
-        setVerifiedGlobals("BYPASS")
+        setVerifiedGlobals("BYPASS", { valid = true, type = "bypass" })
         onSuccess()
         return
     end
@@ -488,11 +564,15 @@ local function showKeySystem(onSuccess)
     -- Try saved key first
     local savedKey = loadSavedKey()
     if savedKey and savedKey ~= "" then
-        local valid = validateKey(savedKey)
+        local valid, msg, meta = validateKey(savedKey)
         if valid then
-            setVerifiedGlobals(savedKey)
+            setVerifiedGlobals(savedKey, meta)
+            saveKey(savedKey, meta)
             onSuccess()
             return
+        else
+            -- Saved key is invalid or expired
+            deleteSavedKey()
         end
     end
 
@@ -606,14 +686,15 @@ local function showKeySystem(onSuccess)
         VerifyBtn.Text = "⏳  Verifying..."
         Tw(VerifyBtn, 0.15, {BackgroundColor3 = T.Yellow})
         KeyStatus.TextColor3 = T.TextAcc
-        KeyStatus.Text = "Verifying key with database..."
+        KeyStatus.Text = "Verifying key with Synox Server..."
 
-        task.delay(0.5, function()
-            if validateKey(inputKey) then
-                setVerifiedGlobals(inputKey)
-                saveKey(inputKey)
+        task.delay(0.3, function()
+            local valid, msg, meta = validateKey(inputKey)
+            if valid then
+                setVerifiedGlobals(inputKey, meta)
+                saveKey(inputKey, meta)
                 KeyStatus.TextColor3 = T.Green
-                KeyStatus.Text = "✓ Key verified! Loading SYNOX HUB..."
+                KeyStatus.Text = "✓ " .. (msg or "Key verified! Loading SYNOX HUB...")
                 VerifyBtn.Text = "✓  Verified!"
                 Tw(VerifyBtn, 0.2, {BackgroundColor3 = T.Green})
 
@@ -632,7 +713,7 @@ local function showKeySystem(onSuccess)
                 end)
             else
                 KeyStatus.TextColor3 = T.Red
-                KeyStatus.Text = "✕ Invalid key! Please check your Discord key."
+                KeyStatus.Text = "✕ " .. (msg or "Invalid key! Please check your Discord key.")
                 VerifyBtn.Text = "✓  Verify Key"
                 Tw(VerifyBtn, 0.15, {BackgroundColor3 = T.BtnExec})
                 shakeInput()
@@ -995,14 +1076,36 @@ local function buildHub()
     HotkeyBtn.MouseLeave:Connect(function() if not listeningForHotkey then Tw(HotkeyBtn, 0.2, {BackgroundColor3 = T.InputBg}) end end)
 
     -- Key info card
-    local KeyInfoCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 106), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
-    Corner(KeyInfoCard, T.CRS); Stroke(KeyInfoCard, T.CardStroke, 1, 0.6); Pad(KeyInfoCard, 10, 12, 10, 12)
+    local KeyInfoCard = C("Frame", {Size = UDim2.new(1, 0, 0, 62), Position = UDim2.new(0, 0, 0, 106), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    Corner(KeyInfoCard, T.CRS); Stroke(KeyInfoCard, T.CardStroke, 1, 0.6); Pad(KeyInfoCard, 8, 12, 8, 12)
     C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "License Status", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyInfoCard})
-    local KeyStatusBadge = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 22), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Green, BackgroundTransparency = 0.8, Text = "✓ Verified", TextColor3 = T.Green, TextSize = 11, Font = T.FH, BorderSizePixel = 0, Parent = KeyInfoCard})
-    Corner(KeyStatusBadge, UDim.new(0, 3))
+
+    local licenseTypeDesc = "Multi-Account Active"
+    local licenseExpiryDesc = "Expires: 24h from first launch"
+    if currentKeyMeta then
+        if currentKeyMeta.type == "lifetime" then
+            licenseTypeDesc = "Lifetime License • Unrestricted"
+            licenseExpiryDesc = "Expires: Never (Permanent)"
+        elseif currentKeyMeta.remainingSeconds then
+            local remSec = tonumber(currentKeyMeta.remainingSeconds) or 0
+            local hrs = math.floor(remSec / 3600)
+            local mins = math.floor((remSec % 3600) / 60)
+            licenseTypeDesc = "24-Hour Free Key • Any Account"
+            licenseExpiryDesc = "Remaining: ~" .. tostring(hrs) .. "h " .. tostring(mins) .. "m"
+        elseif currentKeyMeta.durationHours then
+            licenseTypeDesc = tostring(currentKeyMeta.durationHours) .. "h Key • Multi-Account"
+            licenseExpiryDesc = "Active Session"
+        end
+    end
+
+    local KeyTypeLabel = C("TextLabel", {Size = UDim2.new(0.65, 0, 0, 14), Position = UDim2.new(0, 0, 0, 20), BackgroundTransparency = 1, Text = licenseTypeDesc, TextColor3 = T.TextMut, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyInfoCard})
+    local KeyExpLabel = C("TextLabel", {Size = UDim2.new(0.65, 0, 0, 14), Position = UDim2.new(0, 0, 0, 36), BackgroundTransparency = 1, Text = licenseExpiryDesc, TextColor3 = T.TextSec, TextSize = 10, Font = T.FB, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyInfoCard})
+
+    local KeyStatusBadge = C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 95, 0, 24), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Green, BackgroundTransparency = 0.8, Text = "✓ Active", TextColor3 = T.Green, TextSize = 11, Font = T.FH, BorderSizePixel = 0, Parent = KeyInfoCard})
+    Corner(KeyStatusBadge, UDim.new(0, 4))
 
     -- Reset Key card
-    local ResetCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 163), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    local ResetCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 175), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(ResetCard, T.CRS); Stroke(ResetCard, T.CardStroke, 1, 0.6); Pad(ResetCard, 10, 12, 10, 12)
     C("TextLabel", {Size = UDim2.new(0.6, 0, 0, 16), BackgroundTransparency = 1, Text = "Reset License Key", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = ResetCard})
     local ResetBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = T.Red, BackgroundTransparency = 0.3, Text = "Reset Key", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = ResetCard})
@@ -1013,6 +1116,8 @@ local function buildHub()
         KeyStatusBadge.Text = "Cleared"
         KeyStatusBadge.TextColor3 = T.Yellow
         KeyStatusBadge.BackgroundColor3 = T.Yellow
+        KeyTypeLabel.Text = "No active license"
+        KeyExpLabel.Text = "Key wiped from local files"
         ResetBtn.Text = "✓ Cleared"
         NWarning("License", "Saved key deleted! You will be prompted on next launch.")
     end)
@@ -1020,13 +1125,13 @@ local function buildHub()
     ResetBtn.MouseLeave:Connect(function() Tw(ResetBtn, 0.2, {BackgroundTransparency = 0.3}) end)
 
     -- Version card
-    local VerCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 220), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    local VerCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 232), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(VerCard, T.CRS); Stroke(VerCard, T.CardStroke, 1, 0.6); Pad(VerCard, 10, 12, 10, 12)
     C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Version", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = VerCard})
     C("TextLabel", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 80, 0, 16), Position = UDim2.new(1, 0, 0.5, 0), BackgroundTransparency = 1, Text = "v" .. CONFIG.Version, TextColor3 = T.TextAcc, TextSize = 12, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Right, Parent = VerCard})
 
     -- Discord card
-    local DiscCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 277), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
+    local DiscCard = C("Frame", {Size = UDim2.new(1, 0, 0, 50), Position = UDim2.new(0, 0, 0, 289), BackgroundColor3 = T.Card, BackgroundTransparency = T.CardT, BorderSizePixel = 0, Parent = SetP})
     Corner(DiscCard, T.CRS); Stroke(DiscCard, T.CardStroke, 1, 0.6); Pad(DiscCard, 10, 12, 10, 12)
     C("TextLabel", {Size = UDim2.new(0.5, 0, 0, 16), BackgroundTransparency = 1, Text = "Official Discord", TextColor3 = T.TextPri, TextSize = 13, Font = T.FH, TextXAlignment = Enum.TextXAlignment.Left, Parent = DiscCard})
     local CopyDiscBtn = C("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 100, 0, 26), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.15, Text = "Copy Link", TextColor3 = Color3.new(1, 1, 1), TextSize = 11, Font = T.FH, BorderSizePixel = 0, AutoButtonColor = false, Parent = DiscCard})
